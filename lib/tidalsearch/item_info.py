@@ -17,11 +17,11 @@
 
 from __future__ import unicode_literals
 
-import os, re, sys
+import os, re
 from datetime import date
 import xbmc, xbmcgui
 
-from tidalapi.all_strings import _T
+#from all_strings import _S
 import debug
 from .config import settings, CONST
 
@@ -117,11 +117,12 @@ def getGuiListItem(focusId, pos):
             'Position': int('0%s' % pos),
             'NumItems': int('0%s' % xbmc.getInfoLabel('Container(%s).NumItems' % focusId).decode('utf-8')),
             'OriLabel': xbmc.getInfoLabel(position + 'Label').decode('utf-8'),
-            'Compilation': '' }
+            'Compilation': False }
     # Patterns to remove from Colored Labels
-    patterns = [ '\[COLOR \w+\]', '\[\/COLOR\]', '\[\/?B\]', '\[\/?I\]', '\[\/?LIGHT\]',
-                 '\[\/?UPPERCASE\]','\[\/?LOWERCASE\]', '\[\/?CAPITALIZE\]', '\[CR\]',
-                 '\(\s*Explicit\s*\)', '\(\s*Album Version\s*\)', '\('+_T('Stream Not Ready')+'\)' ]
+    #patterns = [ '\[COLOR \w+\]', '\[\/COLOR\]', '\[\/?B\]', '\[\/?I\]', '\[\/?LIGHT\]',
+    #             '\[\/?UPPERCASE\]','\[\/?LOWERCASE\]', '\[\/?CAPITALIZE\]', '\[CR\]',
+    patterns = [ '\[[^]]*\]', '\(\d+\)',
+                '\(\s*Explicit\s*\)', '\(\s*Album Version\s*\)', '\(Stream locked\)', '\(Stream gesperrt\)' ]
     resubs = [re.compile(pattern) for pattern in patterns]
     coloredLabels = [ 'Label', 'Artist', 'Title', 'Album', 'AlbumArtist' ]
     # Get all Labels
@@ -131,7 +132,7 @@ def getGuiListItem(focusId, pos):
             for resub in resubs:
                 labelText = resub.sub('', labelText)
         item[label] = labelText
-        
+
     all_extensions = {'mp3': 'mp3', 'm4a': 'm4a', 'mp4': 'mp4', 'ogg': 'ogg'}
     # Create other properties
     extension = ''
@@ -157,7 +158,7 @@ def getGuiListItem(focusId, pos):
         itemType = 'video'
     except:
         pass
-        
+
     # TrackNumber as Integer
     intTrack = 0
     try:
@@ -168,7 +169,7 @@ def getGuiListItem(focusId, pos):
     s_albumartist = '%s' % item.get('AlbumArtist')
     if intTrack == 0 or 'divers' in s_albumartist.lower() or 'various' in s_albumartist.lower():
         trackNumber = ''
-        item.update({'Compilation': 'Yes'})
+        item.update({'Compilation': True})
     # Year as Integer
     try:
         year = item.get('Year')
@@ -182,7 +183,7 @@ def getGuiListItem(focusId, pos):
     except:
         intYear = date.today().year
         year = '%s' % intYear
-    
+
     if (CONST.youtube_addon_id in item.get('FileNameAndPath') or not item.get('Artist')) and item.get('Title').find(' - ') > 0:
         # Get artist from title from the Youtube-Addon Label
         artist, title = item.get('Title').split(' - ', 1)
@@ -193,11 +194,10 @@ def getGuiListItem(focusId, pos):
             extension = title.split('.')[-1].lower()
             if len(extension) == 3:
                 title = title.split('.')[0]
-        item.update({'Artist': artist, 'Title': title})         
+        item.update({'Artist': artist, 'Title': title})
 
     # Set/Update some Properties
-    item.update({'Label': label,
-                 'Extension': extension, 
+    item.update({'Extension': extension, 
                  'Type': itemType,
                  'TrackNumber': trackNumber,
                  'TrackNumberInt': intTrack,

@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 
 import re
 
-from tidalapi.models import ArtistItem, AlbumItem, TrackItem, VideoItem
+from koditidal2 import ArtistItem2, AlbumItem2, TrackItem2, VideoItem2
 
 from .config import settings
 from .fuzzywuzzy import fuzz
@@ -27,6 +27,23 @@ from .fuzzywuzzy import fuzz
 #------------------------------------------------------------------------------
 # Fuzzy Functions
 #------------------------------------------------------------------------------
+
+# Patterns to remove from Labels
+PATTERNS = [ '\[COLOR \w+\]', '\[\/COLOR\]', '\[\/?B\]', '\[\/?I\]', '\[\/?LIGHT\]',
+             '\[\/?UPPERCASE\]','\[\/?LOWERCASE\]', '\[\/?CAPITALIZE\]', '\[CR\]',
+             '\(\s*Explicit\s*\)', '\(\s*Album Version\s*\)', '\(Stream locked\)', '\(Stream gesperrt\)',
+              '\(?f(ea)?t\.?\s*\w+[\s\w]+\)?']
+
+def cleanupText(txt):
+    resubs = [re.compile(pattern) for pattern in PATTERNS]
+    for resub in resubs:
+        txt = resub.sub('', txt)
+    # Remove text with brackets
+    #txt = re.sub('\[.*\]', '', txt)
+    #txt = re.sub('\(.*\)', '', txt)
+    #txt = txt.replace("whos", "who's")
+    return txt
+
 
 def initFuzzyLevel(item):
     item._matchLevel = 0
@@ -37,40 +54,30 @@ def addFuzzyLevel(item, multiplier, searchField, resultField, checkBlacklist=Tru
     level = fuzz.utils.intr(multiplier * fuzz.token_sort_ratio(searchField, cleanupText(resultField)))
     if checkBlacklist:
         # Check Blacklists
-        blacklist1 = [word for word in settings.search_blacklist1 if word.lower() in resultField.lower() and not word.lower() in searchField.lower()]
-        blacklist2 = [word for word in settings.search_blacklist2 if word.lower() in resultField.lower() and not word.lower() in searchField.lower()]
-        blacklist3 = [word for word in settings.search_blacklist3 if word.lower() in resultField.lower() and not word.lower() in searchField.lower()]
+        blacklist1 = [word for word in settings.blacklist1 if word.lower() in resultField.lower() and not word.lower() in searchField.lower()]
+        blacklist2 = [word for word in settings.blacklist2 if word.lower() in resultField.lower() and not word.lower() in searchField.lower()]
+        blacklist3 = [word for word in settings.blacklist3 if word.lower() in resultField.lower() and not word.lower() in searchField.lower()]
         if blacklist1:
-            level = fuzz.utils.intr(level * settings.search_blacklist1_percent / 100)
-            item._blacklisted = item._blacklisted or settings.search_blacklist1_percent == 0.0
+            level = fuzz.utils.intr(level * settings.blacklist1_percent / 100)
+            item._blacklisted = item._blacklisted or settings.blacklist1_percent == 0.0
         if blacklist2:
-            level = fuzz.utils.intr(level * settings.search_blacklist2_percent / 100)
-            item._blacklisted = item._blacklisted or settings.search_blacklist2_percent == 0.0
+            level = fuzz.utils.intr(level * settings.blacklist2_percent / 100)
+            item._blacklisted = item._blacklisted or settings.blacklist2_percent == 0.0
         if blacklist3:
-            level = fuzz.utils.intr(level * settings.search_blacklist3_percent / 100)
-            item._blacklisted = item._blacklisted or settings.search_blacklist3_percent == 0.0
+            level = fuzz.utils.intr(level * settings.blacklist3_percent / 100)
+            item._blacklisted = item._blacklisted or settings.blacklist3_percent == 0.0
         item._blacklist += [word for word in blacklist1 if not word in item._blacklist]
         item._blacklist += [word for word in blacklist2 if not word in item._blacklist]
         item._blacklist += [word for word in blacklist3 if not word in item._blacklist]            
     item._matchLevel += level
     return level
-    
-def cleanupText(txt):
-    txt = txt.lower()
-    # Remove Featured from text
-    p = re.compile('\(?f(ea)?t\.?\s*\w+[\s\w]+\)?', re.IGNORECASE)
-    txt = p.sub('', txt)
-    # Remove text with brackets
-    #txt = re.sub('\[.*\]', '', txt)
-    #txt = re.sub('\(.*\)', '', txt)
-    txt = txt.replace("whos", "who's")
-    return txt
+
 
 #------------------------------------------------------------------------------
 # Class FuzzyArtistItem
 #------------------------------------------------------------------------------
 
-class FuzzyArtistItem(ArtistItem):
+class FuzzyArtistItem(ArtistItem2):
 
     _matchLevel = 0
     _blacklist = []
@@ -82,10 +89,10 @@ class FuzzyArtistItem(ArtistItem):
     def getSortField(self, field='name'):
         if field == 'match':
             return self.getFuzzyLevel()
-        return ArtistItem.getSortField(field)
+        return cleanupText(self.getLabel())
 
     def getComments(self):
-        comments = ArtistItem.getComments(self)
+        comments = [] # ArtistItem2.getComments(self)
         if self._matchLevel > 0:
             comments.append('MatchLevel:%s' % self.getFuzzyLevel())
         return comments
@@ -95,7 +102,7 @@ class FuzzyArtistItem(ArtistItem):
         if level < 0:
             level = settings.fuzzy_artist_level
         addFuzzyLevel(self, level, s_artist.lower(), self.name.lower())
-        if self._matchLevel < settings.search_artist_diff_level:
+        if self._matchLevel < settings.artist_min_level:
             self._matchLevel = 0
             #self._blacklisted = True
 
@@ -109,7 +116,7 @@ class FuzzyArtistItem(ArtistItem):
 # Class FuzzyAlbumItem
 #------------------------------------------------------------------------------
 
-class FuzzyAlbumItem(AlbumItem):
+class FuzzyAlbumItem(AlbumItem2):
 
     _matchLevel = 0
     _blacklist = []
@@ -124,10 +131,10 @@ class FuzzyAlbumItem(AlbumItem):
     def getSortField(self, field='name'):
         if field == 'match':
             return self.getFuzzyLevel()
-        return AlbumItem.getSortField(field)
+        return cleanupText(self.getLabel())
 
     def getComments(self):
-        comments = AlbumItem.getComments(self)
+        comments = [] # AlbumItem2.getComments(self)
         if self._matchLevel > 0:
             comments.append('MatchLevel:%s' % self.getFuzzyLevel())            
         return comments
@@ -135,11 +142,11 @@ class FuzzyAlbumItem(AlbumItem):
     def setFuzzyLevel(self, s_artist, s_album, s_albumartist, s_year):
         initFuzzyLevel(self)
         addFuzzyLevel(self, settings.fuzzy_album_level, s_album.lower(), self.title.lower())
-        if s_year and self._year:
-            # self.addFuzzyLevel(settings.fuzzy_album_year_level, '%s' % s_year, '%s' % self._year, checkBlacklist=False)
+        if s_year and self.year:
+            # self.addFuzzyLevel(settings.fuzzy_album_year_level, '%s' % s_year, '%s' % self.year, checkBlacklist=False)
             try:
                 intYear = int('0%s' % s_year)
-                d = abs(intYear - self._year)
+                d = abs(intYear - self.year)
                 if d < 10:
                     self._matchLevel += fuzz.utils.intr(settings.fuzzy_album_level * (100 - (d * 10)))  # 1 Year difference = 10%
             except:
@@ -164,8 +171,8 @@ class FuzzyAlbumItem(AlbumItem):
 # Class FuzzyTrackItem
 #------------------------------------------------------------------------------
 
-class FuzzyTrackItem(TrackItem):
-    
+class FuzzyTrackItem(TrackItem2):
+
     _matchLevel = 0
     _blacklist = []
     _blacklisted = False
@@ -180,10 +187,15 @@ class FuzzyTrackItem(TrackItem):
     def getSortField(self, field='name'):
         if field == 'match':
             return self.getFuzzyLevel()
-        return TrackItem.getSortField(field)
+        return cleanupText(self.getLabel())
+
+    def getListItem(self):
+        url, li, isFolder = TrackItem2.getListItem(self)
+        li.setInfo('music', {'comment': ','.join(self.getComments()) })
+        return (url, li, isFolder)
 
     def getComments(self):
-        comments = TrackItem.getComments(self)
+        comments = [] # TrackItem2.getComments(self)
         if self._matchLevel > 0:
             comments.append('MatchLevel:%s' % self.getFuzzyLevel())
             if settings.debug:
@@ -192,7 +204,6 @@ class FuzzyTrackItem(TrackItem):
                     ftlevel += item.getFuzzyLevel()
                 comments.append('ar:%s,t:%s,al:%s,aa:%s,ft:%s' % (self.artist.getFuzzyLevel(), self._matchLevel, self.album._matchLevel, self.album.artist.getFuzzyLevel(), ftlevel))
         return comments
-    
 
     def setFuzzyLevel(self, s_artist, s_title, s_album, s_albumartist, s_ftartist, s_year):
         initFuzzyLevel(self)
@@ -211,7 +222,7 @@ class FuzzyTrackItem(TrackItem):
             level += self.artist.getFuzzyLevel()
         if self._ftArtists:
             for item in self._ftArtists:
-                if item._matchLevel >= settings.search_artist_diff_level and not item.isBlacklisted():
+                if item._matchLevel >= settings.artist_min_level and not item.isBlacklisted():
                     level += item.getFuzzyLevel()
         if self.album:
             level += self.album.getFuzzyLevel()
@@ -229,7 +240,7 @@ class FuzzyTrackItem(TrackItem):
 # Class FuzzyVideoItem
 #------------------------------------------------------------------------------
 
-class FuzzyVideoItem(VideoItem):
+class FuzzyVideoItem(VideoItem2):
 
     _matchLevel = 0
     _blacklist = []
@@ -244,10 +255,15 @@ class FuzzyVideoItem(VideoItem):
     def getSortField(self, field='name'):
         if field == 'match':
             return self.getFuzzyLevel()
-        return VideoItem.getSortField(field)
+        return cleanupText(self.getLabel())
+
+    def getListItem(self):
+        url, li, isFolder = VideoItem2.getListItem(self)
+        li.setInfo('music', {'comment': ','.join(self.getComments()) })
+        return (url, li, isFolder)
 
     def getComments(self):
-        comments = VideoItem.getComments(self)
+        comments = [] # VideoItem2.getComments(self)
         if self._matchLevel > 0:
             comments.append('MatchLevel:%s' % self.getFuzzyLevel())            
         return comments
@@ -255,8 +271,8 @@ class FuzzyVideoItem(VideoItem):
     def setFuzzyLevel(self, s_artist, s_title, s_year):
         initFuzzyLevel(self)
         addFuzzyLevel(self, settings.fuzzy_title_level, s_title.lower(), self.title.lower())
-        if s_year and self._year:
-            addFuzzyLevel(self, settings.fuzzy_album_year_level, '%s' % s_year, '%s' % self._year, checkBlacklist=False)
+        if s_year and self.year:
+            addFuzzyLevel(self, settings.fuzzy_album_year_level, '%s' % s_year, '%s' % self.year, checkBlacklist=False)
         if self.artist:
             self.artist.setFuzzyLevel(s_artist)
 

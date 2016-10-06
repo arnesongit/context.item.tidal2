@@ -17,34 +17,7 @@
 
 from __future__ import unicode_literals
 
-import xbmc, xbmcgui
-
-from lib.tidalsearch.config import settings, CONST 
-from lib.tidalsearch import item_info, debug
-from lib.tidalsearch.all_strings import _S
-
-#------------------------------------------------------------------------------
-# Public Functions
-#------------------------------------------------------------------------------
-
-def context_menu():
-    commands = []
-    if settings.debug:
-        commands.append( (_S('ListItem Info'), item_info.itemInfoDialog) )
-    item = item_info.getSelectedListItem()
-    if item.get('Artist') and item.get('Title'):        
-        commands.append( (_S('Search in TIDAL'), 'RunPlugin(plugin://%s/search_selected)' % CONST.addon_id) )
-        commands.append( (_S('Convert List to Track Playlist'), 'RunPlugin(plugin://%s/convert_to_playlist/tracks)' % CONST.addon_id) )
-        commands.append( (_S('Convert List to Video Playlist'), 'RunPlugin(plugin://%s/convert_to_playlist/videos)' % CONST.addon_id) )
-    commands.append( (_S('Addon Settings'), 'Addon.OpenSettings("%s")' % CONST.addon_id) )
-    menu = [ txt for txt, func in commands]
-    selected = xbmcgui.Dialog().select(CONST.addon_name, menu)
-    if selected >= 0:
-        txt, func = commands[selected]
-        if callable(func):
-            func()
-        else:
-            xbmc.executebuiltin(func)
+import xbmc
 
 #------------------------------------------------------------------------------
 # MAIN
@@ -52,5 +25,5 @@ def context_menu():
 
 if __name__ == '__main__':
 
-    context_menu()
-    debug.killDebugThreads()
+    # Call Popup Menu in Addon
+    xbmc.executebuiltin('RunPlugin(plugin://context.item.tidal.search/context_menu)')

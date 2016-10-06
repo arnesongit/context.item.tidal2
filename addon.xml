@@ -5,7 +5,7 @@
         <import addon="script.module.requests" version="2.3.0"/>
         <import addon="script.module.routing" version="0.1.0"/>
         <import addon="script.module.unidecode" version="0.4.16"/> 
-        <import addon="plugin.audio.wimp" version="2.0.0"/>
+        <import addon="plugin.audio.tidal-master" version="2.0.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="addon.py"/>
     <extension point="xbmc.python.module" library="lib"/>

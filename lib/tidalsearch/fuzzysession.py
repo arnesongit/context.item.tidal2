@@ -19,8 +19,9 @@ from __future__ import unicode_literals
 
 import re
 import xbmc
+import xbmcplugin
 
-from tidalapi.session import Session
+from koditidal2 import plugin, TidalConfig2, TidalSession2, _T
 from tidalapi.models import SearchResult
 
 import debug
@@ -31,11 +32,20 @@ from .fuzzymodels import FuzzyArtistItem, FuzzyAlbumItem, FuzzyTrackItem, FuzzyV
 # Fuzzy Functions
 #------------------------------------------------------------------------------
 
-class TidalSession(Session):
+class FuzzyConfig(TidalConfig2):
 
     def __init__(self):
-        Session.__init__(self)
-  
+        TidalConfig2.__init__(self)
+
+    def load(self):
+        TidalConfig2.load(self)
+
+
+class FuzzySession(TidalSession2):
+
+    def __init__(self, config=FuzzyConfig()):
+        TidalSession2.__init__(self, config=config)
+
     def matchFeaturedArtist(self, text):
         # Extract Featured Artist from text
         try:
@@ -60,7 +70,7 @@ class TidalSession(Session):
         txt = txt.replace("whos", "who's")
         return txt
 
-    def search_extra(self, artist, title, album='', albumartist='', year='', limit=50):
+    def search_fuzzy(self, artist, title, album='', albumartist='', year='', limit=50):
         s_artist = self.cleanup_search_text(artist)
         s_ftartist = self.matchFeaturedArtist(artist)
         if not s_ftartist:
@@ -82,7 +92,7 @@ class TidalSession(Session):
                 item.setFuzzyLevel(s_artist)
                 pass
             # Only Artists which have the minimum MatchLevel and not blacklisted
-            result.artists = [item for item in result.artists if item._isFavorite or (item._matchLevel >= settings.search_artist_diff_level and not item.isBlacklisted())]
+            result.artists = [item for item in result.artists if item._isFavorite or (item._matchLevel >= settings.artist_min_level and not item.isBlacklisted())]
             # Collect the Artist-IDs
             artist_ids += [item.id for item in result.artists]
         if s_album:
@@ -126,5 +136,36 @@ class TidalSession(Session):
             # Remove Blacklisted Videos
             result.videos = [item for item in result.videos if item._isFavorite or not item.isBlacklisted()]
         return result
+
+    def add_search_result(self, searchresults, sort=None, reverse=False, end=True):
+        headline = '[COLOR yellow]-------- %s --------[/COLOR]'
+        xbmcplugin.setContent(plugin.handle, 'songs')
+        if searchresults.artists.__len__() > 0:
+            self.add_directory_item(_T('Artists'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Artists'))
+            if sort:
+                searchresults.artists.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
+            self.add_list_items(searchresults.artists, end=False)
+        if searchresults.albums.__len__() > 0:
+            self.add_directory_item(_T('Albums'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Albums'))
+            if sort:
+                searchresults.albums.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
+            self.add_list_items(searchresults.albums, end=False)
+        if searchresults.playlists.__len__() > 0:
+            self.add_directory_item(_T('Playlists'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Playlists'))
+            if sort:
+                searchresults.playlists.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
+            self.add_list_items(searchresults.playlists, end=False)
+        if searchresults.tracks.__len__() > 0:
+            self.add_directory_item(_T('Tracks'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Tracks'))
+            if sort:
+                searchresults.tracks.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
+            self.add_list_items(searchresults.tracks, end=False)
+        if searchresults.videos.__len__() > 0:
+            self.add_directory_item(_T('Videos'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Videos'))
+            if sort:
+                searchresults.videos.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
+            self.add_list_items(searchresults.videos, end=False)
+        if end:
+            self.add_list_items([], end=True)
 
 # End of File
