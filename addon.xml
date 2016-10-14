@@ -12,7 +12,7 @@
     <extension point="kodi.context.item" library="context.py">
         <item>
             <label>TIDAL...</label>
-            <visible>True</visible>
+            <visible>System.HasAddon(plugin.audio.tidal-master)</visible>
             <!-- SubString(ListItem.Path,mytidal) -->
         </item>
     </extension>

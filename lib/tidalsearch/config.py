@@ -61,6 +61,8 @@ class Config(object):
         self.addon_fanart = os.path.join(self.addon_path, 'fanart.jpg').decode('utf-8')
         self.addon_icon = os.path.join(self.addon_path, 'icon.png').decode('utf-8')
 
+        self.import_export_path = addon.getSetting('import_export_path').decode('utf-8')
+
         self.debug = True if addon.getSetting('debug') == 'true' else False
         self.debug_server = addon.getSetting('debug_server')
         self.log_details = int('0%s' % addon.getSetting('log_details'))

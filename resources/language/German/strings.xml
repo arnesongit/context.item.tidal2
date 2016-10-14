@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
-    <!-- Global Settings --> 
+    <!-- Global Settings -->
+    <string id="30003">Export-/Import-Verzeichnis</string>
     <string id="30004">Remote-Debugging aktivieren</string>
 
     <string id="30070">Detailliertes Loggen</string>
@@ -41,7 +42,7 @@
     <string id="30404">Bitte vorher einloggen !</string>
     <string id="30405">Starten</string>
     <string id="30406">Von Position</string>
-    <string id="30407">Nach Position</string>
+    <string id="30407">Bis Position</string>
     <string id="30408">Playliste anlegen</string>
     <string id="30409">Ziel-Playliste für %s</string>
     <string id="30410">Suche in TIDAL ...</string>
@@ -60,19 +61,29 @@
     <string id="30423">Addon Einstellungen</string>
     <string id="30424">ListItem Info</string>
     <string id="30425">Anmeldefehler !</string>
-    <string id="30426"></string>
-    <string id="30427"></string>
-    <string id="30428"></string>
-    <string id="30429"></string>
-    <string id="30430"></string>
-    <string id="30431"></string>
-    <string id="30432"></string>
-    <string id="30433"></string>
-    <string id="30434"></string>
-    <string id="30435"></string>
+    <string id="30426">%s-Favoriten exportieren ...</string>
+    <string id="30427">%s-Favoriten importieren ...</string>
+    <string id="30428">{n} exportiert</string>
+    <string id="30429">{n} importiert</string>
+    <string id="30430">Lösche %s-Favoriten</string>
+    <string id="30431">Sollen die {n} {what}-Favoriten gelöscht werden ?</string>
+    <string id="30432">{what} importieren</string>
+    <string id="30433">User-Playlisten exportieren</string>
+    <string id="30434">User-Playlisten importieren ...</string>
+    <string id="30435">User-Playliste exportieren</string>
     <string id="30436"></string>
     <string id="30437"></string>
     <string id="30438"></string>
     <string id="30439"></string>
+    <string id="30440"></string>
+    <string id="30441"></string>
+    <string id="30442"></string>
+    <string id="30443"></string>
+    <string id="30444"></string>
+    <string id="30445"></string>
+    <string id="30446"></string>
+    <string id="30447"></string>
+    <string id="30448"></string>
+    <string id="30449"></string>
 
 </strings>

@@ -17,15 +17,17 @@
 
 from __future__ import unicode_literals
 
-import traceback, urllib
-import xbmc, xbmcgui
+import traceback, urllib, os
+from datetime import datetime
+
+import xbmc, xbmcgui, xbmcvfs
 from routing import Plugin
 from requests import HTTPError
 
-from koditidal import _T, _P, addon as tidalAddon
-from koditidal2 import FOLDER_MASK
+from koditidal import _T, _P, addon as tidalAddon, _addon_id as _tidal_addon_id
 
 from lib.tidalsearch.config import CONST, settings, _S
+from lib.tidalsearch.fuzzymodels import FOLDER_MASK
 from lib.tidalsearch.fuzzysession import FuzzySession
 from lib.tidalsearch import item_info, config, debug
 
@@ -258,8 +260,8 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
     if numItems == 0:
         debug.log('No ListItems found.', xbmc.LOGERROR)
         return
-    pos = min(int(from_pos), numItems)
-    lastPos = min(int(to_pos), numItems)
+    pos = min(int(from_pos), numItems) - 1
+    lastPos = min(int(to_pos), numItems) - 1
     numItems = lastPos - pos + 1
     progress = xbmcgui.DialogProgress()
     progress.create(_S(30410))
@@ -272,15 +274,15 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
         li = listitems[pos]
         artist = li.get('Artist')
         title = li.get('Title')
-        album = li.get('Album') if not li.get('Compilation') else ' ' # item.get('Title')
-        albumartist = li.get('AlbumArtist') if not li.get('Compilation') else ' ' # item.get('Artist')
+        album = li.get('Album') if not li.get('Compilation') else '' # item.get('Title')
+        albumartist = li.get('AlbumArtist') if not li.get('Compilation') else '' # item.get('Artist')
         year = '%s' % li.get('YearInt')
         percent = (pos * 100) / numItems 
         line1 = '%s: %s' % (_T('artist'), artist)
         line2 = '%s: %s' % (_T('track'), title)
         progress.update(percent, line1, line2, line3)
         debug.log('Searching Title: %s - %s' % (artist, title), xbmc.LOGNOTICE)
-        item_id = '' # item.get('track_id')
+        item_id = li.get('video_id', None) if item_type.startswith('video') else li.get('track_id', None)
         if item_id:
             track = session.get_track(item_id, withAlbum=True)
             if track:
@@ -331,6 +333,97 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
     debug.log('Search terminated successfully.', xbmc.LOGNOTICE)
     return True
 
+
+@plugin.route('/favorites/export/<what>')
+def favorites_export(what):
+    name = 'favo_%s_%s.cfg' % (what, datetime.now().strftime('%Y-%m-%d-%H%M%S'))
+    if not session.is_logged_in:
+        return
+    if what == 'playlists':
+        session.user.favorites.export_ids(what=_T('Playlists'), filename=name, action=session.user.favorites.playlists, remove=session.user.favorites.remove_playlist)
+    elif what == 'artists':
+        session.user.favorites.export_ids(what=_T('Artists'), filename=name, action=session.user.favorites.artists, remove=session.user.favorites.remove_artist)
+    elif what == 'albums':
+        session.user.favorites.export_ids(what=_T('Albums'), filename=name, action=session.user.favorites.albums, remove=session.user.favorites.remove_album)
+    elif what == 'tracks':
+        session.user.favorites.export_ids(what=_T('Tracks'), filename=name, action=session.user.favorites.tracks, remove=session.user.favorites.remove_track)
+    elif what == 'videos':
+        session.user.favorites.export_ids(what=_T('Videos'), filename=name, action=session.user.favorites.videos, remove=session.user.favorites.remove_video)
+
+
+@plugin.route('/favorites/import/<what>')
+def favorites_import(what):
+    path = settings.import_export_path
+    if len(path) == 0 or not session.is_logged_in:
+        return
+    files = xbmcvfs.listdir(path)[1]
+    files = [name for name in files if name.startswith('favo_%s' % what)]
+    selected = xbmcgui.Dialog().select(path, files)
+    if selected < 0:
+        return
+    name = os.path.join(path, files[selected])
+    ok = False
+    if what == 'playlists':
+        ok = session.user.favorites.import_ids(what=_T('Playlists'), filename=name, action=session.user.favorites.add_playlist)
+    elif what == 'artists':
+        ok = session.user.favorites.import_ids(what=_T('Artists'), filename=name, action=session.user.favorites.add_artist)
+    elif what == 'albums':
+        ok = session.user.favorites.import_ids(what=_T('Albums'), filename=name, action=session.user.favorites.add_album)
+    elif what == 'tracks':
+        ok = session.user.favorites.import_ids(what=_T('Tracks'), filename=name, action=session.user.favorites.add_track)
+    elif what == 'videos':
+        ok = session.user.favorites.import_ids(what=_T('Videos'), filename=name, action=session.user.favorites.add_video)
+    return ok
+
+
+@plugin.route('/user_playlist_export/<playlist_id>')
+def user_playlist_export(playlist_id):
+    if not session.is_logged_in:
+        return
+    try:
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        playlist = session.get_playlist(playlist_id)
+        if playlist and playlist.numberOfItems > 0:
+            filename = 'playlist_%s_%s.cfg' % (playlist.title, datetime.now().strftime('%Y-%m-%d-%H%M%S'))
+            filename = filename.replace(' ', '_')
+            session.user.export_playlists([playlist], filename)
+    except Exception, e:
+        debug.logException(e)
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+
+
+@plugin.route('/user_playlist_export_all')
+def user_playlist_export_all():
+    if not session.is_logged_in:
+        return
+    try:
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        items = session.user.playlists()
+        filename = 'playlist_all_%s.cfg' % datetime.now().strftime('%Y-%m-%d-%H%M%S')
+        session.user.export_playlists(items, filename)
+    except Exception, e:
+        debug.logException(e)
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+
+
+@plugin.route('/user_playlist_import')
+def user_playlist_import():
+    path = settings.import_export_path
+    if len(path) == 0 or not session.is_logged_in:
+        return
+    files = xbmcvfs.listdir(path)[1]
+    files = [name for name in files if name.startswith('playlist_')]
+    selected = xbmcgui.Dialog().select(path, files)
+    if selected < 0:
+        return
+    name = os.path.join(path, files[selected])
+    try:
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        session.user.import_playlists(name)
+    except Exception, e:
+        debug.logException(e)
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )    
+
 #------------------------------------------------------------------------------
 # Context Menu Function
 #------------------------------------------------------------------------------
@@ -339,16 +432,41 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
 def context_menu():
     commands = []
     item = item_info.getSelectedListItem()
+    #debug.halt()
     if item.get('Artist') and item.get('Title'):
-        commands.append( (_S(30419), search_selected) )
         commands.append( (_S(30420), search_fuzzy) )
+        commands.append( (_S(30419), search_selected) )
         commands.append( (_S(30421), 'RunPlugin(plugin://%s/convert_to_playlist/tracks)' % CONST.addon_id) )
         commands.append( (_S(30422), 'RunPlugin(plugin://%s/convert_to_playlist/videos)' % CONST.addon_id) )
+    if item.get('FileNameAndPath').find('%s/favorites/artists' % _tidal_addon_id) >= 0:
+        commands.append( (_S(30426) % _P('artists'), 'RunPlugin(plugin://%s/favorites/export/artists)' % CONST.addon_id) )
+        commands.append( (_S(30427) % _P('artists'), 'RunPlugin(plugin://%s/favorites/import/artists)' % CONST.addon_id) )
+    if item.get('FileNameAndPath').find('%s/favorites/albums' % _tidal_addon_id) >= 0:
+        commands.append( (_S(30426) % _P('albums'), 'RunPlugin(plugin://%s/favorites/export/albums)' % CONST.addon_id) )
+        commands.append( (_S(30427) % _P('albums'), 'RunPlugin(plugin://%s/favorites/import/albums)' % CONST.addon_id) )
+    if item.get('FileNameAndPath').find('%s/favorites/playlists' % _tidal_addon_id) >= 0:
+        commands.append( (_S(30426) % _P('playlists'), 'RunPlugin(plugin://%s/favorites/export/playlists)' % CONST.addon_id) )
+        commands.append( (_S(30427) % _P('playlists'), 'RunPlugin(plugin://%s/favorites/import/playlists)' % CONST.addon_id) )
+    if item.get('FileNameAndPath').find('%s/favorites/tracks' % _tidal_addon_id) >= 0:
+        commands.append( (_S(30426) % _P('tracks'), 'RunPlugin(plugin://%s/favorites/export/tracks)' % CONST.addon_id) )
+        commands.append( (_S(30427) % _P('tracks'), 'RunPlugin(plugin://%s/favorites/import/tracks)' % CONST.addon_id) )
+    if item.get('FileNameAndPath').find('%s/favorites/videos' % _tidal_addon_id) >= 0:
+        commands.append( (_S(30426) % _P('videos'), 'RunPlugin(plugin://%s/favorites/export/videos)' % CONST.addon_id) )
+        commands.append( (_S(30427) % _P('videos'), 'RunPlugin(plugin://%s/favorites/import/videos)' % CONST.addon_id) )
+    if item.get('FileNameAndPath').find('%s/user_playlists' % _tidal_addon_id) >= 0:
+        commands.append( (_S(30433), 'RunPlugin(plugin://%s/user_playlist_export_all)' % CONST.addon_id) )
+        commands.append( (_S(30434), 'RunPlugin(plugin://%s/user_playlist_import)' % CONST.addon_id) )
+    if item.get('FolderPath').find('%s/user_playlists' % _tidal_addon_id) >= 0:
+        uuid = item.get('FileNameAndPath').split('playlist/')[1]
+        commands.append( (_S(30435), 'RunPlugin(plugin://%s/user_playlist_export/%s)' % (CONST.addon_id, uuid)) )
     commands.append( (_S(30423), 'Addon.OpenSettings("%s")' % CONST.addon_id) )
     if settings.debug:
         commands.append( (_S(30424), item_info.itemInfoDialog) )
     menu = [ txt for txt, func in commands]
-    selected = xbmcgui.Dialog().select(CONST.addon_name, menu)
+    try:
+        selected = xbmcgui.Dialog().contextmenu(menu)
+    except:
+        selected = xbmcgui.Dialog().select(CONST.addon_name, menu)
     if selected >= 0:
         txt, func = commands[selected]
         if callable(func):

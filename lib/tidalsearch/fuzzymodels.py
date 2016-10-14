@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 
 import re
 
-from koditidal2 import ArtistItem2, AlbumItem2, TrackItem2, VideoItem2
+from koditidal2 import ArtistItem2, AlbumItem2, TrackItem2, VideoItem2, FolderItem2
 
 from .config import settings
 from .fuzzywuzzy import fuzz
@@ -33,6 +33,8 @@ PATTERNS = [ '\[COLOR \w+\]', '\[\/COLOR\]', '\[\/?B\]', '\[\/?I\]', '\[\/?LIGHT
              '\[\/?UPPERCASE\]','\[\/?LOWERCASE\]', '\[\/?CAPITALIZE\]', '\[CR\]',
              '\(\s*Explicit\s*\)', '\(\s*Album Version\s*\)', '\(Stream locked\)', '\(Stream gesperrt\)',
               '\(?f(ea)?t\.?\s*\w+[\s\w]+\)?']
+
+FOLDER_MASK = FolderItem2('','').FOLDER_MASK
 
 def cleanupText(txt):
     resubs = [re.compile(pattern) for pattern in PATTERNS]

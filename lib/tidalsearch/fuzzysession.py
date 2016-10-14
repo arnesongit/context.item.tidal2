@@ -17,15 +17,18 @@
 
 from __future__ import unicode_literals
 
-import re
-import xbmc
-import xbmcplugin
+import os, re, logging
+from types import DictionaryType
 
-from koditidal2 import plugin, TidalConfig2, TidalSession2, _T
+import xbmc, xbmcplugin, xbmcgui, xbmcvfs
+
+from koditidal import KodiLogHandler, DEBUG_LEVEL, _T, _P
+from koditidal2 import plugin, TidalConfig2, TidalSession2, User2, Favorites2
+from tidalapi import SubscriptionType
 from tidalapi.models import SearchResult
 
 import debug
-from .config import settings
+from .config import settings, _S
 from .fuzzymodels import FuzzyArtistItem, FuzzyAlbumItem, FuzzyTrackItem, FuzzyVideoItem
 
 #------------------------------------------------------------------------------
@@ -36,6 +39,11 @@ class FuzzyConfig(TidalConfig2):
 
     def __init__(self):
         TidalConfig2.__init__(self)
+        # Set Log Handler for tidalapi
+        logger = logging.getLogger()
+        logger.addHandler(KodiLogHandler(modules=['lib.tidalapi']))
+        if DEBUG_LEVEL == xbmc.LOGSEVERE:
+            logger.setLevel(logging.DEBUG)
 
     def load(self):
         TidalConfig2.load(self)
@@ -45,6 +53,9 @@ class FuzzySession(TidalSession2):
 
     def __init__(self, config=FuzzyConfig()):
         TidalSession2.__init__(self, config=config)
+
+    def init_user(self, user_id, subscription_type):
+        return FuzzyUser(self, user_id, subscription_type)
 
     def matchFeaturedArtist(self, text):
         # Extract Featured Artist from text
@@ -167,5 +178,121 @@ class FuzzySession(TidalSession2):
             self.add_list_items(searchresults.videos, end=False)
         if end:
             self.add_list_items([], end=True)
+
+
+class FuzzyFavorites(Favorites2):
+
+    def __init__(self, session, user_id):
+        Favorites2.__init__(self, session, user_id)
+
+    def export_ids(self, what, filename, action, remove=None):
+        path = settings.import_export_path
+        if len(path) == 0:
+            return
+        items = action()
+        if items and len(items) > 0:
+            lines = ['%s' % item.id + '\t' + item.getLabel(extended=False) + '\n' for item in items]
+            full_path = os.path.join(path, filename)
+            f = xbmcvfs.File(full_path, 'w')
+            for line in lines:
+                f.write(line.encode('utf-8'))
+            f.close()
+            xbmcgui.Dialog().notification(_P(what), _S(30428).format(n=len(lines)), xbmcgui.NOTIFICATION_INFO)
+            if remove:
+                ok = xbmcgui.Dialog().yesno(heading=_S(30430) % _P(what), line1=_S(30431).format(n=len(items), what=_P(what)))
+                if ok:
+                    progress = xbmcgui.DialogProgress()
+                    progress.create(_S(30430) % _P(what))
+                    idx = 0
+                    for item in items:
+                        if progress.iscanceled():
+                            break
+                        idx = idx + 1
+                        percent = (idx * 100) / len(items) 
+                        progress.update(percent, item.getLabel(extended=False))
+                        try:
+                            remove(item.id)
+                        except:
+                            break
+                    progress.close()
+
+    def import_ids(self, what, filename, action):
+        try:
+            ok = False
+            f = xbmcvfs.File(filename, 'r')
+            ids = f.read().decode('utf-8').split('\n')
+            f.close()
+            ids = [item.split('\t')[0] for item in ids]
+            ids = [item for item in ids if len(item) > 0]
+            if len(ids) > 0:
+                ok = action(ids)
+                if ok:
+                    xbmcgui.Dialog().notification(_P(what), _S(30429).format(n=len(ids)), xbmcgui.NOTIFICATION_INFO)
+        except Exception, e:
+            debug.logException(e)
+        return ok
+
+
+class FuzzyUser(User2):
+
+    def __init__(self, session, user_id, subscription_type=SubscriptionType.hifi):
+        User2.__init__(self, session, user_id, subscription_type)
+        self.favorites = FuzzyFavorites(session, user_id)
+
+    def export_playlists(self, playlists, filename):
+        path = settings.import_export_path
+        if len(path) == 0:
+            return
+        full_path = os.path.join(path, filename)
+        fd = xbmcvfs.File(full_path, 'w')
+        numItems = 0
+        for playlist in playlists:
+            items = self._session.get_playlist_items(playlist=playlist)
+            if len(items) > 0:
+                numItems += playlist.numberOfItems
+                fd.write(repr({ 'uuid': playlist.id,
+                                'title': playlist.title,
+                                'description': playlist.description,
+                                'ids': [item.id for item in items]  }) + b'\n')
+        fd.close()
+        xbmcgui.Dialog().notification(_P('Playlists'), _S(30428).format(n=numItems), xbmcgui.NOTIFICATION_INFO)
+
+    def import_playlists(self, filename):
+        try:
+            ok = False
+            f = xbmcvfs.File(filename, 'r')
+            lines = f.read().decode('utf-8').split('\n')
+            f.close()
+            playlists = []
+            names = []
+            for line in lines:
+                try:
+                    if len(line) > 0:
+                        item = eval(line)
+                        if isinstance(item, DictionaryType):
+                            playlists.append(item)
+                            names.append(item.get('title'))
+                except:
+                    pass
+            if len(names) < 1:
+                return False
+            selected = xbmcgui.Dialog().select(_S(30432).format(what=_T('Playlist')), names)
+            if selected < 0:
+                return False
+            item = playlists[selected]
+            item_ids = ['%s' % bItem for bItem in item.get('ids')]
+            dialog = xbmcgui.Dialog()
+            title = dialog.input(_T(30233), item.get('title'), type=xbmcgui.INPUT_ALPHANUM)
+            if not title:
+                return False
+            description = dialog.input(_T(30234), item.get('description'), type=xbmcgui.INPUT_ALPHANUM)
+            playlist = self.create_playlist(title, description)
+            if playlist:
+                ok = self.add_playlist_entries(playlist=playlist, item_ids=item_ids)
+                if ok:
+                    xbmcgui.Dialog().notification(_T('Playlist'), _S(30429).format(n=playlist.title), xbmcgui.NOTIFICATION_INFO)
+        except Exception, e:
+            debug.logException(e)
+        return ok
 
 # End of File
