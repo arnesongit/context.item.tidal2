@@ -40,7 +40,7 @@ USER_AGENTS = {
 # Constants from appTidal.js
 class CONST(object):
     addon_name = 'TIDAL Search'
-    addon_id = 'context.item.tidal.search'
+    addon_id = 'context.item.tidal-search'
     youtube_addon_id = 'plugin.video.youtube'
 
 #------------------------------------------------------------------------------

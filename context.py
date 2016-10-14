@@ -18,6 +18,7 @@
 from __future__ import unicode_literals
 
 import xbmc
+from lib.tidalsearch.config import CONST
 
 #------------------------------------------------------------------------------
 # MAIN
@@ -26,4 +27,4 @@ import xbmc
 if __name__ == '__main__':
 
     # Call Popup Menu in Addon
-    xbmc.executebuiltin('RunPlugin(plugin://context.item.tidal.search/context_menu)')
+    xbmc.executebuiltin('RunPlugin(plugin://%s/context_menu)' % CONST.addon_id)
