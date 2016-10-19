@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="context.item.tidal-search" name="TIDAL Search" version="0.1.0" provider-name="arneson">
+<addon id="context.item.tidal2" name="TIDAL Search" version="0.1.1" provider-name="arneson">
     <requires>
         <import addon="xbmc.python" version="2.20.0"/>
         <import addon="script.module.requests" version="2.3.0"/>
         <import addon="script.module.routing" version="0.1.0"/>
-        <import addon="script.module.unidecode" version="0.4.16"/> 
-        <import addon="plugin.audio.tidal-master" version="2.0.0"/>
+        <import addon="script.module.unidecode" version="0.4.16"/>
+        <import addon="plugin.audio.tidal2" version="2.0.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="addon.py"/>
     <extension point="xbmc.python.module" library="lib"/>

@@ -40,7 +40,7 @@ USER_AGENTS = {
 # Constants from appTidal.js
 class CONST(object):
     addon_name = 'TIDAL Search'
-    addon_id = 'context.item.tidal-search'
+    addon_id = 'context.item.tidal2'
     youtube_addon_id = 'plugin.video.youtube'
 
 #------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ class Config(object):
         self.blacklist2_percent = float('0%s' % addon.getSetting('blacklist2_percent'))
         self.blacklist3_percent = float('0%s' % addon.getSetting('blacklist3_percent'))
 
-        # Fuzzy-Settings        
+        # Fuzzy-Settings
         self.artist_favorite_addition = float('0%s' % addon.getSetting('artist_favorite_addition'))
         self.artist_min_level = float('0%s' % addon.getSetting('artist_min_level'))
         self.fuzzy_artist_level = float('0%s' % addon.getSetting('fuzzy_artist_level'))
@@ -92,7 +92,7 @@ class Config(object):
 #------------------------------------------------------------------------------
 
 addon = xbmcaddon.Addon(CONST.addon_id)
-settings = Config(addon) 
+settings = Config(addon)
 
 def reloadConfig():
     settings.reload(addon)

@@ -1,4 +1,9 @@
 
+[B]0.1.1[/B]
+
+- Renamed to context.item.tidal2
+- Works now with Addon plugin.audio.tidal2
+
 [B]0.1.0[/B]
 
 - Initial Release.
@@ -12,4 +17,4 @@
   - Added 3 "Blacklists" to define unwanted keywords in search result items.
     The Blacklists can be defined in the Addon Settings.
   - If a keyword of a blacklist is found in a search result item the MatchLevel of this
-    Item can be reduced or the item can be completely removed from the search result.   
+    Item can be reduced or the item can be completely removed from the search result.
