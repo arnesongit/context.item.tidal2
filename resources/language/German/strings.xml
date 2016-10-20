@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
     <!-- Global Settings -->
+    <string id="30001">TIDAL2 ...</string>
     <string id="30003">Export-/Import-Verzeichnis</string>
     <string id="30004">Remote-Debugging aktivieren</string>
 
