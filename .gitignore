@@ -42,7 +42,10 @@ docs/_build
 
 # Mac-Stuff
 .DS_Store
+*.pxm
 
 # Eclipse-Settings
+.externalTool*
 .settings
 *.prefs
+*strings.po
