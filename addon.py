@@ -27,7 +27,6 @@ from requests import HTTPError
 from koditidal import _T, _P, addon as tidalAddon, _addon_id as _tidal_addon_id
 
 from lib.tidalsearch.config import CONST, settings, _S
-from lib.tidalsearch.fuzzymodels import FOLDER_MASK
 from lib.tidalsearch.fuzzysession import FuzzySession
 from lib.tidalsearch import item_info, config, debug
 
@@ -45,6 +44,8 @@ session.load_session()
 add_items = session.add_list_items
 add_directory = session.add_directory_item
 add_search_results = session.add_search_result
+
+FOLDER_MASK = '[COLOR blue]%s[/COLOR]' if tidalAddon.getSetting('color_mode') == 'true' else '%s'
 
 #------------------------------------------------------------------------------
 # Plugin Functions

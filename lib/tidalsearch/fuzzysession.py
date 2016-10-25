@@ -23,13 +23,14 @@ from types import DictionaryType
 import xbmc, xbmcplugin, xbmcgui, xbmcvfs
 
 from koditidal import KodiLogHandler, DEBUG_LEVEL, _T, _P
-from koditidal2 import plugin, TidalConfig2, TidalSession2, User2, Favorites2
+from koditidal2 import plugin as tidalPlugin, addon as tidalAddon, TidalConfig2, TidalSession2, User2, Favorites2
 from tidalapi import SubscriptionType
 from tidalapi.models import SearchResult
 
 import debug
 from .config import settings, _S
 from .fuzzymodels import FuzzyArtistItem, FuzzyAlbumItem, FuzzyTrackItem, FuzzyVideoItem
+
 
 #------------------------------------------------------------------------------
 # Fuzzy Functions
@@ -149,30 +150,30 @@ class FuzzySession(TidalSession2):
         return result
 
     def add_search_result(self, searchresults, sort=None, reverse=False, end=True):
-        headline = '[COLOR yellow]-------- %s --------[/COLOR]'
-        xbmcplugin.setContent(plugin.handle, 'songs')
+        headline = '[COLOR yellow]-------- %s --------[/COLOR]' if tidalAddon.getSetting('color_mode') == 'true' else '-------- %s --------'
+        xbmcplugin.setContent(tidalPlugin.handle, 'songs')
         if searchresults.artists.__len__() > 0:
-            self.add_directory_item(_T('Artists'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Artists'))
+            self.add_directory_item(_T('Artists'), tidalPlugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Artists'))
             if sort:
                 searchresults.artists.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
             self.add_list_items(searchresults.artists, end=False)
         if searchresults.albums.__len__() > 0:
-            self.add_directory_item(_T('Albums'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Albums'))
+            self.add_directory_item(_T('Albums'), tidalPlugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Albums'))
             if sort:
                 searchresults.albums.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
             self.add_list_items(searchresults.albums, end=False)
         if searchresults.playlists.__len__() > 0:
-            self.add_directory_item(_T('Playlists'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Playlists'))
+            self.add_directory_item(_T('Playlists'), tidalPlugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Playlists'))
             if sort:
                 searchresults.playlists.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
             self.add_list_items(searchresults.playlists, end=False)
         if searchresults.tracks.__len__() > 0:
-            self.add_directory_item(_T('Tracks'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Tracks'))
+            self.add_directory_item(_T('Tracks'), tidalPlugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Tracks'))
             if sort:
                 searchresults.tracks.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
             self.add_list_items(searchresults.tracks, end=False)
         if searchresults.videos.__len__() > 0:
-            self.add_directory_item(_T('Videos'), plugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Videos'))
+            self.add_directory_item(_T('Videos'), tidalPlugin.url_for_path('/do_nothing'), isFolder=False, label=headline % _T('Videos'))
             if sort:
                 searchresults.videos.sort(key=lambda line: line.getSortField(sort), reverse=reverse)
             self.add_list_items(searchresults.videos, end=False)
