@@ -42,7 +42,7 @@ class FuzzyConfig(TidalConfig2):
         TidalConfig2.__init__(self)
         # Set Log Handler for tidalapi
         logger = logging.getLogger()
-        logger.addHandler(KodiLogHandler(modules=['lib.tidalapi']))
+        logger.addHandler(KodiLogHandler(modules=['lib.tidalapi', 'tidalapi']))
         if DEBUG_LEVEL == xbmc.LOGSEVERE:
             logger.setLevel(logging.DEBUG)
 

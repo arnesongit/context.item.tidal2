@@ -335,6 +335,19 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
     return True
 
 
+@plugin.route('/user_playlist/add_id/<playlist_id>/<item_id>')
+def user_playlist_add_id(playlist_id, item_id):
+    try:
+        playlist = session.get_playlist(playlist_id)
+        if playlist:
+            session.user.add_playlist_entries(playlist=playlist, item_ids=['%s' % item_id])
+            numItems = playlist.numberOfItems + 1
+            debug.log('Added ID %s to Playlist %s at position %s' % (item_id, playlist.title, numItems))
+    except Exception, e:
+        debug.log(e, 'Failed to add ID %s to playlist %s' % (item_id, playlist_id), level=xbmc.LOGERROR)
+        traceback.print_exc()
+
+
 @plugin.route('/favorites/export/<what>')
 def favorites_export(what):
     name = 'favo_%s_%s.cfg' % (what, datetime.now().strftime('%Y-%m-%d-%H%M%S'))
@@ -433,7 +446,6 @@ def user_playlist_import():
 def context_menu():
     commands = []
     item = item_info.getSelectedListItem()
-    #debug.halt()
     if item.get('Artist') and item.get('Title'):
         commands.append( (_S(30420), search_fuzzy) )
         commands.append( (_S(30419), search_selected) )
