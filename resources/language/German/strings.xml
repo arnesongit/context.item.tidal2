@@ -66,11 +66,12 @@
     <string id="30427">%s-Favoriten importieren ...</string>
     <string id="30428">{n} exportiert</string>
     <string id="30429">{n} importiert</string>
-    <string id="30430">Lösche %s-Favoriten</string>
-    <string id="30431">Sollen die {n} {what}-Favoriten gelöscht werden ?</string>
+    <string id="30430">%s-Favoriten löschen</string>
+    <string id="30431">Sollen alle {what}-Favoriten gelöscht werden ?</string>
     <string id="30432">{what} importieren</string>
     <string id="30433">User-Playlisten exportieren</string>
     <string id="30434">User-Playlisten importieren ...</string>
     <string id="30435">User-Playliste exportieren</string>
+    <string id="30436">Alle %s-Favoriten löschen</string>
 
 </strings>

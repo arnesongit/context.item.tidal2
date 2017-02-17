@@ -1,3 +1,7 @@
+v0.1.5 (2017-02-17)
+- Update for TIDAL2 v2.0.0-beta11
+- Added function to delete all Favorites
+
 v0.1.4 (2016-11-23)
 - Update for TIDAL2 v2.0.0-beta7
 

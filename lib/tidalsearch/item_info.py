@@ -73,6 +73,7 @@ def itemInfoDialog():
              'Track= \"%s\" %s' % (item.get('TrackNumber'), 'Compilation' if item.get('Compilation') else ''),
              'Genre= \"%s\"' % item.get('Genre'),
              'Comment= \"%s\"' % item.get('Comment'),
+             'Rating= \"%s\", UserRating= \"%s\"' % (item.get('Rating'), item.get('UserRating')),
              'PlotOutline= \"%s\"' % item.get('PlotOutline'),
              'Studio= \"%s\"' % item.get('Studio'),
              'Year= \"%s\"' % item.get('Year'),
@@ -106,7 +107,7 @@ def getAllListItems():
 
 def getGuiListItem(focusId, pos):
 
-    labels = [ 'FileNameAndPath', 'Label', 'Artist', 'Title', 'Album', 'AlbumArtist', 
+    labels = [ 'FileNameAndPath', 'Label', 'Artist', 'Title', 'Album', 'AlbumArtist', 'Rating', 'UserRating',
                'Genre', 'TrackNumber', 'PlotOutline', 'Studio', 'Comment', 'Year', 'Duration', 'Fanart', 'Thumbnail' ]
     position = 'Container(%s).ListitemPosition(%s).' % (focusId, pos)
     # Initial Item Label Values

@@ -186,36 +186,25 @@ class FuzzyFavorites(Favorites2):
     def __init__(self, session, user_id):
         Favorites2.__init__(self, session, user_id)
 
-    def export_ids(self, what, filename, action, remove=None):
-        path = settings.import_export_path
-        if len(path) == 0:
-            return
-        items = action()
-        if items and len(items) > 0:
-            lines = ['%s' % item.id + '\t' + item.getLabel(extended=False) + '\n' for item in items]
-            full_path = os.path.join(path, filename)
-            f = xbmcvfs.File(full_path, 'w')
-            for line in lines:
-                f.write(line.encode('utf-8'))
-            f.close()
-            xbmcgui.Dialog().notification(_P(what), _S(30428).format(n=len(lines)), xbmcgui.NOTIFICATION_INFO)
-            if remove:
-                ok = xbmcgui.Dialog().yesno(heading=_S(30430) % _P(what), line1=_S(30431).format(n=len(items), what=_P(what)))
-                if ok:
-                    progress = xbmcgui.DialogProgress()
-                    progress.create(_S(30430) % _P(what))
-                    idx = 0
-                    for item in items:
-                        if progress.iscanceled():
-                            break
-                        idx = idx + 1
-                        percent = (idx * 100) / len(items) 
-                        progress.update(percent, item.getLabel(extended=False))
-                        try:
-                            remove(item.id)
-                        except:
-                            break
-                    progress.close()
+    def export_ids(self, what, filename, action):
+        try:
+            ok = False
+            path = settings.import_export_path
+            if len(path) == 0:
+                return
+            items = action()
+            if items and len(items) > 0:
+                lines = ['%s' % item.id + '\t' + item.getLabel(extended=False) + '\n' for item in items]
+                full_path = os.path.join(path, filename)
+                f = xbmcvfs.File(full_path, 'w')
+                for line in lines:
+                    f.write(line.encode('utf-8'))
+                f.close()
+                xbmcgui.Dialog().notification(_P(what), _S(30428).format(n=len(lines)), xbmcgui.NOTIFICATION_INFO)
+                ok = True
+        except Exception, e:
+            debug.logException(e)
+        return ok
 
     def import_ids(self, what, filename, action):
         try:
@@ -231,6 +220,27 @@ class FuzzyFavorites(Favorites2):
                     xbmcgui.Dialog().notification(_P(what), _S(30429).format(n=len(ids)), xbmcgui.NOTIFICATION_INFO)
         except Exception, e:
             debug.logException(e)
+        return ok
+
+    def delete_all(self, what, action, remove):
+        try:
+            ok = False
+            progress = xbmcgui.DialogProgress()
+            progress.create(_S(30430) % _P(what))
+            idx = 0
+            items = action()
+            for item in items:
+                if progress.iscanceled():
+                    break
+                idx = idx + 1
+                percent = (idx * 100) / len(items) 
+                progress.update(percent, item.getLabel(extended=False))
+                remove(item.id)
+            ok = not progress.iscanceled()
+        except Exception, e:
+            debug.logException(e)
+        finally:
+            progress.close()
         return ok
 
 

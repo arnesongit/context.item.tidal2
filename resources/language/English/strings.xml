@@ -66,11 +66,12 @@
     <string id="30427">Import Favorite %s ...</string>
     <string id="30428">{n} exported</string>
     <string id="30429">{n} imported</string>
-    <string id="30430">Deleting Favorite %s</string>
-    <string id="30431">Remove {n} "{what}" from Favorites ?</string>
+    <string id="30430">Delete Favorite %s</string>
+    <string id="30431">Remove all {what} from Favorites ?</string>
     <string id="30432">Import {what}</string>
     <string id="30433">Export User-Playlists</string>
     <string id="30434">Import User-Playlists ...</string>
     <string id="30435">Export User-Playlist</string>
+    <string id="30436">Delete all Favorite %s</string>
 
 </strings>
