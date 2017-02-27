@@ -18,7 +18,7 @@
 from __future__ import unicode_literals
 
 import xbmc
-from lib.tidalsearch.config import CONST
+from resources.lib.tidalsearch.config import CONST
 
 #------------------------------------------------------------------------------
 # MAIN

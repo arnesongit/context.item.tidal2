@@ -1,3 +1,9 @@
+v0.1.6 (2017-02-27)
+- New context menu function "Search for Artist News ..." for Favorite Artists.
+  This function searchs for new Albums, Tracks and Videos for your Favorite Artists
+  and inserts all new items into Playlists.
+- Moved lib folder into resources for new Krypton Addon file structure
+
 v0.1.5 (2017-02-17)
 - Update for TIDAL2 v2.0.0-beta11
 - Added function to delete all Favorites

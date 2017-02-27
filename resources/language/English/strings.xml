@@ -45,7 +45,7 @@
     <string id="30406">From Position</string>
     <string id="30407">To Position</string>
     <string id="30408">Generate Playlist</string>
-    <string id="30409">Destination Playlist for %s</string>
+    <string id="30409">Playlist for %s</string>
     <string id="30410">Searching in TIDAL ...</string>
     <string id="30411">Searching ...</string>
     <string id="30412">Not Found</string>
@@ -73,5 +73,10 @@
     <string id="30434">Import User-Playlists ...</string>
     <string id="30435">Export User-Playlist</string>
     <string id="30436">Delete all Favorite %s</string>
+    <string id="30437">Search for Artist News ...</string>
+    <string id="30438">Limit for Search Results</string>
+    <string id="30439">Max. age in days</string>
+    <string id="30440">Searching for Singles in Playlist ...</string>
+    <string id="30441">Adding found Items to Playlist ...</string>
 
 </strings>

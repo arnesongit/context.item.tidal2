@@ -21,7 +21,7 @@ import os, re
 from datetime import date
 import xbmc, xbmcgui
 
-import debug
+from . import debug
 from .config import settings, CONST
 
 #------------------------------------------------------------------------------
