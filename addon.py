@@ -555,21 +555,24 @@ def search_artist_news():
             ('limit', _S(30438) + ': '),
             ('diff_days', _S(30439) + ': '),
             ]
+    album_playlist = None
+    track_playlist = None
+    video_playlist = None
     if tidalAddon.getSetting('default_albumplaylist_id'):
         album_playlist = session.get_playlist(tidalAddon.getSetting('default_albumplaylist_id'))
-        if not album_playlist:
-            album_playlist = PlaylistItem2()
-            album_playlist.title = ''
+    if not album_playlist:
+        album_playlist = PlaylistItem2(Playlist())
+        album_playlist.title = ''
     if tidalAddon.getSetting('default_trackplaylist_id'):
         track_playlist = session.get_playlist(tidalAddon.getSetting('default_trackplaylist_id'))
-        if not track_playlist:
-            track_playlist = PlaylistItem2()
-            track_playlist.title = ''
+    if not track_playlist:
+        track_playlist = PlaylistItem2(Playlist())
+        track_playlist.title = ''
     if tidalAddon.getSetting('default_videoplaylist_id'):
         video_playlist = session.get_playlist(tidalAddon.getSetting('default_videoplaylist_id'))
-        if not video_playlist:
-            video_playlist = PlaylistItem2()
-            video_playlist.title = ''
+    if not video_playlist:
+        video_playlist = PlaylistItem2(Playlist())
+        video_playlist.title = ''
     item = {'action': '',
             'album_playlist': album_playlist.title,
             'album_playlist_id': album_playlist.id,

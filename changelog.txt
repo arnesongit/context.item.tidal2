@@ -1,3 +1,6 @@
+v0.1.7 (2017-02-28)
+- Fixed problem with "Search for Artist News ..." when no default playlist is set.
+
 v0.1.6 (2017-02-27)
 - New context menu function "Search for Artist News ..." for Favorite Artists.
   This function searchs for new Albums, Tracks and Videos for your Favorite Artists
