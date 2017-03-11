@@ -466,7 +466,7 @@ def user_playlist_import():
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )    
 
 
-def search_artist_news_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist):
+def search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist):
     found_items = []
     for item in items:
         diff = datetime.today() - item.releaseDate
@@ -526,8 +526,8 @@ def search_artist_news_run(progress, pos, numItems, artist, items, diff_days, re
     return
 
 
-@plugin.route('/search_artist_news')
-def search_artist_news():
+@plugin.route('/search_artist_music')
+def search_artist_music():
     if not session.is_logged_in:
         xbmcgui.Dialog().notification(plugin.name, _S(30404), xbmcgui.NOTIFICATION_ERROR)
         return
@@ -558,17 +558,23 @@ def search_artist_news():
     album_playlist = None
     track_playlist = None
     video_playlist = None
-    if tidalAddon.getSetting('default_albumplaylist_id'):
+    if config.getSetting('default_albumplaylist_id'):
+        album_playlist = session.get_playlist(config.getSetting('default_albumplaylist_id'))
+    if not album_playlist and tidalAddon.getSetting('default_albumplaylist_id'):
         album_playlist = session.get_playlist(tidalAddon.getSetting('default_albumplaylist_id'))
     if not album_playlist:
         album_playlist = PlaylistItem2(Playlist())
         album_playlist.title = ''
-    if tidalAddon.getSetting('default_trackplaylist_id'):
+    if config.getSetting('default_trackplaylist_id'):
+        track_playlist = session.get_playlist(config.getSetting('default_trackplaylist_id'))
+    if not track_playlist and tidalAddon.getSetting('default_trackplaylist_id'):
         track_playlist = session.get_playlist(tidalAddon.getSetting('default_trackplaylist_id'))
     if not track_playlist:
         track_playlist = PlaylistItem2(Playlist())
         track_playlist.title = ''
-    if tidalAddon.getSetting('default_videoplaylist_id'):
+    if config.getSetting('default_videoplaylist_id'):
+        video_playlist = session.get_playlist(config.getSetting('default_videoplaylist_id'))
+    if not video_playlist and tidalAddon.getSetting('default_videoplaylist_id'):
         video_playlist = session.get_playlist(tidalAddon.getSetting('default_videoplaylist_id'))
     if not video_playlist:
         video_playlist = PlaylistItem2(Playlist())
@@ -616,6 +622,10 @@ def search_artist_news():
                 item.update({cmds[answer][0]: value})
     if answer < 0:
         return
+    # Saving used Playlist-IDs
+    config.setSetting('default_albumplaylist_id', album_playlist.id if album_playlist.id else '')
+    config.setSetting('default_trackplaylist_id', track_playlist.id if track_playlist.id else '')
+    config.setSetting('default_videoplaylist_id', video_playlist.id if video_playlist.id else '')
     # Searching now
     progress = xbmcgui.DialogProgress()
     progress.create(_S(30437))
@@ -635,15 +645,15 @@ def search_artist_news():
         pos += 1
         if album_playlist.id:
             items = session.get_artist_albums(artist.id, limit=limit)
-            search_artist_news_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
+            search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
         pos += 1
         if album_playlist.id or track_playlist.id:
             items = session.get_artist_albums_ep_singles(artist.id, limit=limit)
-            search_artist_news_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
+            search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
         pos += 1
         if video_playlist.id:
             items = session.get_artist_videos(artist.id, limit=limit)
-            search_artist_news_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
+            search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
         if len(result.albums) > 0 or len(result.tracks) > 0 or len(result.videos) > 0:
             total.artists.append(artist)
     progress.update(100, line1=_S(30417))
@@ -665,7 +675,7 @@ def context_menu():
         commands.append( (_S(30421), 'RunPlugin(plugin://%s/convert_to_playlist/tracks)' % CONST.addon_id) )
         commands.append( (_S(30422), 'RunPlugin(plugin://%s/convert_to_playlist/videos)' % CONST.addon_id) )
     if item.get('FileNameAndPath').find('%s/favorites/artists' % _tidal_addon_id) >= 0:
-        commands.append( (_S(30437), 'RunPlugin(plugin://%s/search_artist_news)' % CONST.addon_id) )
+        commands.append( (_S(30437), 'RunPlugin(plugin://%s/search_artist_music)' % CONST.addon_id) )
         commands.append( (_S(30426) % _P('artists'), 'RunPlugin(plugin://%s/favorites/export/artists)' % CONST.addon_id) )
         commands.append( (_S(30427) % _P('artists'), 'RunPlugin(plugin://%s/favorites/import/artists)' % CONST.addon_id) )
         commands.append( (_S(30436) % _P('artists'), 'RunPlugin(plugin://%s/favorites/delete_all/artists)' % CONST.addon_id) )
@@ -689,9 +699,9 @@ def context_menu():
         commands.append( (_S(30433), 'RunPlugin(plugin://%s/user_playlist_export_all)' % CONST.addon_id) )
         commands.append( (_S(30434), 'RunPlugin(plugin://%s/user_playlist_import)' % CONST.addon_id) )
     if item.get('FileNameAndPath').find('%s/artist/' % _tidal_addon_id) >= 0:
-        commands.append( (_S(30437), 'RunPlugin(plugin://%s/search_artist_news)' % CONST.addon_id) )
+        commands.append( (_S(30437), 'RunPlugin(plugin://%s/search_artist_music)' % CONST.addon_id) )
     if item.get('FolderPath').find('%s/user_playlists' % _tidal_addon_id) >= 0:
-        uuid = item.get('FileNameAndPath').split('playlist/')[1]
+        uuid = item.get('FileNameAndPath').split('playlist/')[1].split('/')[0]
         commands.append( (_S(30435), 'RunPlugin(plugin://%s/user_playlist_export/%s)' % (CONST.addon_id, uuid)) )
     commands.append( (_S(30423), 'Addon.OpenSettings("%s")' % CONST.addon_id) )
     commands.append( ('TIDAL2-' + _S(30423), 'Addon.OpenSettings("%s")' % _tidal_addon_id) )

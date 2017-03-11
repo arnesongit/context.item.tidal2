@@ -1,3 +1,7 @@
+v0.1.8 (2017-03-11)
+- Some changes for German and English texts
+- Remember used Playlists for "Search for New Music"
+
 v0.1.7 (2017-02-28)
 - Fixed problem with "Search for Artist News ..." when no default playlist is set.
 

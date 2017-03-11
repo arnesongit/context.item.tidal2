@@ -42,7 +42,7 @@ class FuzzyConfig(TidalConfig2):
         TidalConfig2.__init__(self)
         # Set Log Handler for tidalapi
         logger = logging.getLogger()
-        logger.addHandler(KodiLogHandler(modules=['lib.tidalapi', 'tidalapi']))
+        logger.addHandler(KodiLogHandler(modules=['resources.lib.tidalapi', 'tidalapi']))
         if DEBUG_LEVEL == xbmc.LOGSEVERE:
             logger.setLevel(logging.DEBUG)
 
@@ -57,6 +57,14 @@ class FuzzySession(TidalSession2):
 
     def init_user(self, user_id, subscription_type):
         return FuzzyUser(self, user_id, subscription_type)
+
+    def get_playlist(self, playlist_id):
+        playlist = None
+        try:
+            playlist = TidalSession2.get_playlist(self, playlist_id)
+        except:
+            pass
+        return playlist
 
     def matchFeaturedArtist(self, text):
         # Extract Featured Artist from text
@@ -291,7 +299,11 @@ class FuzzyUser(User2):
             if selected < 0:
                 return False
             item = playlists[selected]
-            item_ids = ['%s' % bItem for bItem in item.get('ids')]
+            item_ids = []
+            for bItem in item.get('ids'):
+                bItem = '%s' % bItem
+                if bItem not in item_ids:
+                    item_ids.append(bItem)
             dialog = xbmcgui.Dialog()
             title = dialog.input(_T(30233), item.get('title'), type=xbmcgui.INPUT_ALPHANUM)
             if not title:

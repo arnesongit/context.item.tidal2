@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
     <!-- Global Settings -->
-    <string id="30001">TIDAL2 ...</string>
+    <string id="30001">TIDAL2 Search ...</string>
     <string id="30003">Export-/Import-Verzeichnis</string>
     <string id="30004">Remote-Debugging aktivieren</string>
 
@@ -21,7 +21,7 @@
     <string id="30085">Match-Level-Reduzierung bei Blacklist-Treffer</string>
     <string id="30086">Mindest-Match-Level für "Künstler"/"Album-Künstler"</string>
     <string id="30087">Gewichtungen der Match Level für:</string>
-    <string id="30088">Addition für Künstler-Favoriten</string>
+    <string id="30088">Match-Level für Künstler-Favoriten erhöhen</string>
     <string id="30089">Nur in Klammern ( ) oder [ ] suchen</string>
 
     <string id="30101">Künstler</string>
@@ -73,7 +73,7 @@
     <string id="30434">User-Playlisten importieren ...</string>
     <string id="30435">User-Playliste exportieren</string>
     <string id="30436">Alle %s-Favoriten löschen</string>
-    <string id="30437">Suche nach Künstler-Neuigkeiten ...</string>
+    <string id="30437">Suche nach neuer Musik ...</string>
     <string id="30438">Limit für Such-Ergebnisse</string>
     <string id="30439">Max. Alter in Tagen</string>
     <string id="30440">Suche nach Singles in Playlisten ...</string>

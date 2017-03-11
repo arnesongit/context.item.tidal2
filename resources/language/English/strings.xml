@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
     <!-- Global Settings -->
-    <string id="30001">TIDAL2 ...</string>
+    <string id="30001">TIDAL2 Search ...</string>
     <string id="30003">Export/Import Path</string>
     <string id="30004">Enable Remote Debugging</string>
 
@@ -21,7 +21,7 @@
     <string id="30085">Reduce Match-Level for Blacklist Match</string>
     <string id="30086">Minimum Match-Level "Artist"/"Album Artist"</string>
     <string id="30087">Factors for Fuzzy Search:</string>
-    <string id="30088">Addition for Favorite Artists</string>
+    <string id="30088">Increase Match-Level for Favorite Artists</string>
     <string id="30089">Match only in brackets ( ) or [ ]</string>
 
     <string id="30101">Artist</string>
@@ -73,7 +73,7 @@
     <string id="30434">Import User-Playlists ...</string>
     <string id="30435">Export User-Playlist</string>
     <string id="30436">Delete all Favorite %s</string>
-    <string id="30437">Search for Artist News ...</string>
+    <string id="30437">Search for New Music ...</string>
     <string id="30438">Limit for Search Results</string>
     <string id="30439">Max. age in days</string>
     <string id="30440">Searching for Singles in Playlist ...</string>
