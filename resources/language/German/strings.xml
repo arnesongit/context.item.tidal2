@@ -3,14 +3,8 @@
     <!-- Global Settings -->
     <string id="30001">TIDAL2 Search ...</string>
     <string id="30003">Export-/Import-Verzeichnis</string>
-    <string id="30004">Remote-Debugging aktivieren</string>
-
-    <string id="30070">Detailliertes Loggen</string>
-    <string id="30071">Normal</string>
-    <string id="30072">Mehr Infos</string>
-    <string id="30073">Alles</string>
-    <string id="30074">Kein Logging</string>
-    <string id="30075">Remote Debug Server</string>
+    <string id="30004">Max. Anzahl gleichzeitiger Such-Anfragen</string>
+    <string id="30070">Debug-Logging aktivieren</string>
 
     <!-- Search Settings -->
     <string id="30080">Blacklists</string>
@@ -76,7 +70,12 @@
     <string id="30437">Suche nach neuer Musik ...</string>
     <string id="30438">Limit für Such-Ergebnisse</string>
     <string id="30439">Max. Alter in Tagen</string>
-    <string id="30440">Suche nach Singles in Playlisten ...</string>
-    <string id="30441">Gefundene Einträge in Playliste einfügen ...</string>
+    <string id="30440">Neue Musik gefunden:</string>
+    <string id="30441">Gefundene Einträge in Playlisten einfügen ...</string>
+    <string id="30442">Fehler beim Suchen nach neuer Musik</string>
+    <string id="30443">Keine neue Musik gefunden !</string>
+    <string id="30444">Suche abgebrochen.</string>
+    <string id="30445">Die Suche ist noch aktiv.</string>
+    <string id="30446">Soll die Suche abgebrochen werden ?</string>
 
 </strings>

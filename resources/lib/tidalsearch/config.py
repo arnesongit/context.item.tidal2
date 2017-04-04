@@ -63,9 +63,15 @@ class Config(object):
 
         self.import_export_path = addon.getSetting('import_export_path').decode('utf-8')
 
-        self.debug = True if addon.getSetting('debug') == 'true' else False
-        self.debug_server = addon.getSetting('debug_server')
-        self.log_details = int('0%s' % addon.getSetting('log_details'))
+        self.max_thread_count = max(1, int('0%s' % addon.getSetting('max_thread_count')))
+        if addon.getSetting('log_details'):
+            # Convert old Setting to new
+            log_details = int('0%s' % addon.getSetting('log_details'))
+            addon.setSetting('log_details', '')
+            addon.setSetting('debug_log', 'true' if log_details > 0 else 'false')
+            import xbmc
+            xbmc.log('Converted debug_log to %s' % addon.getSetting('debug_log'), xbmc.LOGSEVERE)
+        self.debug = True if addon.getSetting('debug_log') == 'true' else False
 
         # Blacklist Settings
         self.blacklist1 = addon.getSetting('blacklist1').split()

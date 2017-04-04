@@ -2,9 +2,8 @@
 <settings>
   <category label="30011">
     <setting label="30003" id="import_export_path" type="folder" source="auto" option="writeable"/>
-    <setting label="30004" id="debug" type="bool" default="true" />
-    <setting label="30075" id="debug_server" type="text" default="localhost" visible="eq(-1,true)"/>
-    <setting label="30070" id="log_details" type="select" lvalues="30074|30071|30072|30073" default="1"/>
+    <setting label="30004" id="max_thread_count" type="slider" default="10" range="1,1,20" option="int"/>
+    <setting label="30070" id="debug_log" type="bool" default="false" />
   </category>
   <category label="30080">
     <setting label="30082" id="blacklist1" type="text" default="mix maxi radio extended live"/>

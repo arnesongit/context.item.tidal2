@@ -17,20 +17,31 @@
 
 from __future__ import unicode_literals
 
-import os, re, logging
+import os, re, traceback
 from types import DictionaryType
+
+from threading import Thread, currentThread
+from Queue import Queue
+from datetime import datetime
+import requests
 
 import xbmc, xbmcplugin, xbmcgui, xbmcvfs
 
-from koditidal import KodiLogHandler, DEBUG_LEVEL, _T, _P
-from koditidal2 import plugin as tidalPlugin, addon as tidalAddon, TidalConfig2, TidalSession2, User2, Favorites2
-from tidalapi import SubscriptionType
+from requests import HTTPError
+
+from koditidal import _T, _P, VARIOUS_ARTIST_ID
+from koditidal2 import plugin as tidalPlugin, addon as tidalAddon, TidalConfig2, TidalSession2, User2, Favorites2, VideoItem2, AlbumItem2
+from tidalapi import SubscriptionType, AlbumType
 from tidalapi.models import SearchResult
 
-import debug
+from debug import DebugHelper
+import config
 from .config import settings, _S
 from .fuzzymodels import FuzzyArtistItem, FuzzyAlbumItem, FuzzyTrackItem, FuzzyVideoItem
 
+debug = DebugHelper(pluginName=settings.addon_name,
+                    detailLevel=2 if settings.debug else 1,
+                    enableTidalApiLog= True if tidalAddon.getSetting('debug_log') == 'true' else False)
 
 #------------------------------------------------------------------------------
 # Fuzzy Functions
@@ -40,11 +51,6 @@ class FuzzyConfig(TidalConfig2):
 
     def __init__(self):
         TidalConfig2.__init__(self)
-        # Set Log Handler for tidalapi
-        logger = logging.getLogger()
-        logger.addHandler(KodiLogHandler(modules=['resources.lib.tidalapi', 'tidalapi']))
-        if DEBUG_LEVEL == xbmc.LOGSEVERE:
-            logger.setLevel(logging.DEBUG)
 
     def load(self):
         TidalConfig2.load(self)
@@ -55,6 +61,23 @@ class FuzzySession(TidalSession2):
     def __init__(self, config=FuzzyConfig()):
         TidalSession2.__init__(self, config=config)
 
+    def _http_error(self, e):
+        try:
+            if isinstance(e, HTTPError):
+                r = e.response
+                if r.status_code in [401, 403]:
+                    msg = _T(30210)
+                else:
+                    msg = r.reason
+                try:
+                    msg = r.json().get('userMessage')
+                except:
+                    pass
+                xbmcgui.Dialog().notification('%s Error %s' % (tidalPlugin.name, r.status_code), msg, xbmcgui.NOTIFICATION_ERROR)
+        except:
+            pass
+        traceback.print_exc()
+
     def init_user(self, user_id, subscription_type):
         return FuzzyUser(self, user_id, subscription_type)
 
@@ -62,9 +85,49 @@ class FuzzySession(TidalSession2):
         playlist = None
         try:
             playlist = TidalSession2.get_playlist(self, playlist_id)
-        except:
-            pass
+        except Exception as e:
+            self._http_error(e)
         return playlist
+
+    def get_playlist_items(self, playlist, offset=0, limit=9999, ret='playlistitems'):
+        items = []
+        try:
+            items = TidalSession2.get_playlist_items(self, playlist, offset=offset, limit=limit, ret=ret)
+        except Exception as e:
+            self._http_error(e)
+        return items
+
+    def get_playlist_tracks(self, playlist_id, offset=0, limit=9999):
+        items = []
+        try:
+            items = TidalSession2.get_playlist_tracks(self, playlist_id, offset=offset, limit=limit)
+        except Exception as e:
+            self._http_error(e)
+        return items
+
+    def get_album(self, album_id, withCache=True):
+        album = None
+        try:
+            album = TidalSession2.get_album(self, album_id, withCache=withCache)
+        except Exception as e:
+            self._http_error(e)
+        return album
+
+    def get_album_items(self, album_id, ret='playlistitems'):
+        items = []
+        try:
+            items = TidalSession2.get_album_items(self, album_id, ret=ret)
+        except Exception as e:
+            self._http_error(e)
+        return items
+
+    def get_album_tracks(self, album_id, withAlbum=True):
+        items = []
+        try:
+            items = TidalSession2.get_album_tracks(self, album_id, withAlbum=withAlbum)
+        except Exception as e:
+            self._http_error(e)
+        return items
 
     def matchFeaturedArtist(self, text):
         # Extract Featured Artist from text
@@ -99,7 +162,7 @@ class FuzzySession(TidalSession2):
         s_album = self.cleanup_search_text(album)
         s_albumartist = self.cleanup_search_text(albumartist)
         s_year = '%s' % year
-        debug.log('Searching in TDAL: artist="%s", title="%s", album="%s", albumartist="%s", ftartist="%s", year="%s" ...' % (s_artist, s_title, s_album, s_albumartist, s_ftartist, year), xbmc.LOGNOTICE)
+        debug.log('Searching in TDAL: artist="%s", title="%s", album="%s", albumartist="%s", ftartist="%s", year="%s" ...' % (s_artist, s_title, s_album, s_albumartist, s_ftartist, year))
         result = SearchResult()
         artist_ids = []
         album_ids = []
@@ -317,5 +380,192 @@ class FuzzyUser(User2):
         except Exception, e:
             debug.logException(e)
         return ok
+
+
+class NewMusicSearcher(object):
+
+    def __init__(self, session, album_playlist, track_playlist, video_playlist, limit, diffDays):
+        self.session = session
+        self.album_playlist = album_playlist
+        self.track_playlist = track_playlist
+        self.video_playlist = video_playlist
+        self.found_albums = []
+        self.found_tracks = []
+        self.found_videos = []
+        self.artistQueue = Queue(maxsize=99999)
+        self.artistCount = 0
+        self.searchLimit = limit
+        self.diffDays = diffDays
+        self.abortThreads = True
+        self.runningThreads = {}
+        self.progress = xbmcgui.DialogProgressBG()
+
+    def progress_update(self, heading):
+        try:
+            self.progress.update(percent=((self.artistCount - self.artistQueue.qsize()) * 100) / self.artistCount,
+                                 heading=heading,
+                                 message='%s:%s, %s:%s, %s:%s (Threads:%s)' % (_P('albums'), len(self.found_albums),
+                                                                               _P('tracks'), len(self.found_tracks),
+                                                                               _P('videos'), len(self.found_videos),
+                                                                               len(self.runningThreads.keys())) )
+        except:
+            pass
+
+    def search_thread(self):
+        try:
+            debug.log('Search Thread %s started.' % currentThread().ident)
+            while not xbmc.abortRequested and not self.abortThreads:
+                try:
+                    artist = self.artistQueue.get_nowait()
+                except:
+                    break
+                try:
+                    items = []
+                    if not self.abortThreads and self.album_playlist.id:
+                        items += self.session.get_artist_albums(artist.id, limit=self.searchLimit)
+                    if not self.abortThreads and (self.album_playlist.id or self.track_playlist.id):
+                        items += self.session.get_artist_albums_ep_singles(artist.id, limit=self.searchLimit)
+                    if not self.abortThreads and self.video_playlist.id:
+                        items += self.session.get_artist_videos(artist.id, limit=self.searchLimit)
+                    for item in items:
+                        if self.abortThreads: break
+                        diff = datetime.today() - item.releaseDate
+                        if not item._userplaylists and diff.days < self.diffDays:
+                            if isinstance(item, VideoItem2):
+                                if not '%s' % item.id in self.found_videos:
+                                    debug.log('Found new Video: %s' % item.getLabel(extended=False))
+                                    self.found_videos.append('%s' % item.id)
+                            elif isinstance(item, AlbumItem2):
+                                tracks = self.session.get_album_items(item.id)
+                                for track in tracks:
+                                    if track.available:
+                                        # Use first Track in an Album as PlaylistItem
+                                        if item.type == AlbumType.album or item.type == AlbumType.ep:
+                                            if not '%s' % track.id in self.found_albums:
+                                                debug.log('Found new Album: %s' % item.getLabel(extended=False))
+                                                self.found_albums.append('%s' % track.id)
+                                        elif not track._userplaylists:
+                                            if not '%s' % track.id in self.found_tracks:
+                                                debug.log('Found new Track: %s' % item.getLabel(extended=False))
+                                                self.found_tracks.append('%s' % track.id)
+                                        break
+                    self.progress_update(heading='%s: %s' % (_T('artist'), artist.name))
+                    pass
+                except requests.HTTPError as e:
+                    r = e.response
+                    msg = 'Error'
+                    try:
+                        msg = r.reason
+                        msg = r.json().get('userMessage')
+                    except:
+                        pass
+                    #debug.log('Error getting Album ID %s' % album_id, xbmc.LOGERROR)
+                    if r.status_code == 429 and not self.abortThreads:
+                        self.abortThreads = True
+                        debug.log('Too many requests. Aborting Workers ...', xbmc.LOGERROR)
+                        self.albumQueue._init(9999)
+                        xbmcgui.Dialog().notification(_S(30437), msg, xbmcgui.NOTIFICATION_ERROR)
+        except Exception, e:
+            traceback.print_exc()
+        self.runningThreads.pop(currentThread().ident, None)
+        debug.log('Search Thread %s terminated.' % currentThread().ident)
+        return
+
+    def search(self, artists, thread_count=1):
+        for artist in artists:
+            if VARIOUS_ARTIST_ID <> '%s' % artist.id:
+                self.artistQueue.put(artist)
+        self.artistCount = self.artistQueue.qsize()
+        if self.artistCount < 1:
+            debug.log('No Artist to search ...')
+            return
+        debug.log('Start: Searching new Music for %s Artists ...' % self.artistCount)
+        self.abortThreads = False
+        threadsToStart = thread_count if thread_count < self.artistCount else self.artistCount
+        self.runningThreads = {}
+        self.progress = xbmcgui.DialogProgressBG()
+        self.progress.create(heading=_S(30437))
+        try:
+            self.progress_update(heading=_S(30437))
+            xbmc.sleep(500)
+            while len(self.runningThreads.keys()) < threadsToStart:
+                try:
+                    worker = Thread(target=self.search_thread)
+                    worker.start()
+                    self.runningThreads.update({worker.ident: worker})
+                except Exception, e:
+                    debug.log(str(e), xbmc.LOGERROR)
+            debug.log('Waiting until all Threads are terminated')
+            startTime = datetime.today()
+            stopWatch = startTime
+            remainingArtists = self.artistCount
+            lastCount = self.artistCount
+            while len(self.runningThreads.keys()) > 0 and not xbmc.abortRequested:
+                for worker in self.runningThreads.values():
+                    worker.join(5)
+                    if config.getSetting('search_artist_music_abort') == 'true':
+                        debug.log('Stopping all Workers ...')
+                        self.abortThreads = True
+                        config.setSetting('search_artist_music_abort', 'false')
+                    if worker.isAlive():
+                        now = datetime.today()
+                        runningTime = now - startTime
+                        remainingArtists = self.artistQueue.qsize()
+                        debug.log('Workers still running after %s seconds, %s Artists remaining ...' % (runningTime.seconds, remainingArtists))
+                        diff = now - stopWatch
+                        if lastCount > remainingArtists:
+                            # Workers are still removing artists from the queue
+                            lastCount = remainingArtists
+                            stopWatch = now
+                        elif diff.seconds >= 60:
+                            # Timeout: Stopping Threads with the Stop-Flag
+                            debug.log('Timeout, sending Stop to Workers ...')
+                            self.abortThreads = True
+                            break
+                    else:
+                        # Removing terminates Thread
+                        self.runningThreads.pop(worker.ident, None)
+                if self.abortThreads:
+                    xbmcgui.Dialog().notification(_S(30437), _S(30444), icon=xbmcgui.NOTIFICATION_WARNING)
+                    for worker in self.runningThreads.values():
+                        debug.log('Waiting for Thread %s to terminate ...' % worker.ident)
+                        worker.join(5)
+                        self.runningThreads.pop(worker.ident, None)
+                    xbmc.sleep(2000)
+            if len(self.found_albums) > 0 or len(self.found_tracks) > 0 or len(self.found_videos) > 0:
+                self.progress_update(heading=_S(30441))
+                if len(self.found_albums) > 0 and self.album_playlist.id:
+                    self.album_playlist._etag = None
+                    try:
+                        self.session.user.add_playlist_entries(self.album_playlist, self.found_albums)
+                    except:
+                        pass
+                if len(self.found_tracks) > 0 and self.track_playlist.id:
+                    self.track_playlist._etag = None
+                    try:
+                        self.session.user.add_playlist_entries(self.track_playlist, self.found_tracks)
+                    except:
+                        pass
+                if len(self.found_videos) > 0 and self.video_playlist.id:
+                    self.video_playlist._etag = None
+                    try:
+                        self.session.user.add_playlist_entries(self.video_playlist, self.found_videos)
+                    except:
+                        pass
+                message = '%s:%s, %s:%s, %s:%s' % (_P('albums'), len(self.found_albums),
+                                                   _P('tracks'), len(self.found_tracks),
+                                                   _P('videos'), len(self.found_videos))
+                xbmcgui.Dialog().notification(_S(30440), message, icon=xbmcgui.NOTIFICATION_INFO)
+                debug.log('Found: %s' % message)
+            else:
+                debug.log('No new Music found !')
+                xbmcgui.Dialog().notification(_S(30437), _S(30443), icon=xbmcgui.NOTIFICATION_INFO)
+        except Exception, e:
+            debug.log(str(e), xbmc.LOGERROR)
+            xbmcgui.Dialog().notification(_S(30437), _S(30442), icon=xbmcgui.NOTIFICATION_ERROR)
+        finally:
+            xbmc.sleep(2000)
+            self.progress.close()
+        debug.log('End: Searching for new Music.')
 
 # End of File

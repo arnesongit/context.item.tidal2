@@ -1,3 +1,9 @@
+v0.1.9 (2017-04-04)
+- Ignore HTTP errors during "Search for New Music"
+- Faster "Search for New Music" because it runs now in multiple background threads
+- Cleanup Debug-Logging Code, Using debug module from TIDAL2 Addon
+- Updated Module fuzzywuzzy to version 0.15.0 from https://github.com/seatgeek/fuzzywuzzy
+
 v0.1.8 (2017-03-11)
 - Some changes for German and English texts
 - Remember used Playlists for "Search for New Music"

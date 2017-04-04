@@ -17,20 +17,20 @@
 
 from __future__ import unicode_literals
 
-import traceback, urllib, os
+import traceback, urllib, os, threading
 from datetime import datetime
 
 import xbmc, xbmcgui, xbmcvfs
 from routing import Plugin
 from requests import HTTPError
 
-from tidalapi import SearchResult, AlbumType, Playlist
-from koditidal import _T, _P, addon as tidalAddon, _addon_id as _tidal_addon_id, VARIOUS_ARTIST_ID
-from koditidal2 import AlbumItem2, VideoItem2, PlaylistItem2
+from tidalapi import Playlist
+from koditidal import _T, _P, addon as tidalAddon, _addon_id as _tidal_addon_id
+from koditidal2 import PlaylistItem2
 
 from resources.lib.tidalsearch.config import CONST, settings, _S
-from resources.lib.tidalsearch.fuzzysession import FuzzySession
-from resources.lib.tidalsearch import item_info, config, debug
+from resources.lib.tidalsearch.fuzzysession import FuzzySession, NewMusicSearcher, debug
+from resources.lib.tidalsearch import item_info, config
 
 #------------------------------------------------------------------------------
 # Initialization
@@ -289,13 +289,13 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
         line1 = '%s: %s' % (_T('artist'), artist)
         line2 = '%s: %s' % (_T('track'), title)
         progress.update(percent, line1, line2, line3)
-        debug.log('Searching Title: %s - %s' % (artist, title), xbmc.LOGNOTICE)
+        debug.log('Searching Title: %s - %s' % (artist, title))
         item_id = li.get('video_id', None) if item_type.startswith('video') else li.get('track_id', None)
         if item_id:
             track = session.get_track(item_id, withAlbum=True)
             if track:
                 line3 = 'TIDAL-ID %s: %s - %s (%s)' % (track.id, track.artist.name, track.title, track.year)
-                debug.log('Found TIDAL Track-Id %s: %s - %s' % (track.id, track.artist.name, track.title), xbmc.LOGNOTICE)
+                debug.log('Found TIDAL Track-Id %s: %s - %s' % (track.id, track.artist.name, track.title))
                 items.append(track)
                 pos = pos + 1
                 continue
@@ -306,7 +306,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
             # Take the first result (best matchLevel) 
             track = result.tracks[0]
             line3 = 'ID %s: %s - %s (%s)' % (track.id, track.artist.name, track.title, track.year)
-            debug.log('Found Title Id %s: %s - %s' % (track.id, track.artist.name, track.title), xbmc.LOGNOTICE)
+            debug.log('Found Title Id %s: %s - %s' % (track.id, track.artist.name, track.title))
             items.append(track)
         elif item_type.startswith('video') and len(result.videos) > 0:
             # Sort over matchLevel
@@ -314,10 +314,10 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
             # Take the first result (best matchLevel) 
             video = result.videos[0]
             line3 = 'ID %s: %s - %s (%s)' % (video.id, video.artist.name, video.title, video.year)
-            debug.log('Found Video Id %s: %s - %s' % (video.id, video.artist.name, video.title), xbmc.LOGNOTICE)
+            debug.log('Found Video Id %s: %s - %s' % (video.id, video.artist.name, video.title))
             items.append(video)
         else:
-            debug.log('Title not found.', xbmc.LOGNOTICE)
+            debug.log('Title not found.')
             line3 = '%s: %s - %s' % (_S(30412), li.get('Artist'), li.get('Title'))
         pos = pos + 1
 
@@ -329,7 +329,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
         yes = xbmcgui.Dialog().yesno(_S(30414), _S(30415), line2, _S(30416))
         if not yes:
             progress.close()
-            debug.log('Search aborted by user.', xbmc.LOGNOTICE)
+            debug.log('Search aborted by user.')
             return False
     if playlist and foundItems > 0:
         progress.update(99, _S(30417), line2, _S(30418))
@@ -338,7 +338,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
     xbmc.sleep(1000)
     progress.close()
 
-    debug.log('Search terminated successfully.', xbmc.LOGNOTICE)
+    debug.log('Search terminated successfully.')
     return True
 
 
@@ -466,70 +466,14 @@ def user_playlist_import():
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )    
 
 
-def search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist):
-    found_items = []
-    for item in items:
-        diff = datetime.today() - item.releaseDate
-        if not item._userplaylists and diff.days < diff_days:
-            if isinstance(item, VideoItem2):
-                found_items.append(item)
-                result.videos.append(item)
-                total.videos.append(item)
-            elif isinstance(item, AlbumItem2):
-                if item.type == 'ALBUM':
-                    found_items.append(item)
-                    result.albums.append(item)
-                    total.albums.append(item)
-                else:
-                    # EPs and Singles
-                    found_items.append(item)
-                    result.tracks.append(item)
-                    total.tracks.append(item)
-    line1 = '%s: %s' % (_T('artist'), artist.name)
-    line2 = '%s %s / %s %s / %s %s' % (len(result.albums), _P('albums'), len(result.tracks), 'Singles', len(result.videos), _P('videos'))
-    line3 = _S(30411) if len(found_items) == 0 else _S(30440)
-    percent = (pos * 100) / numItems
-    progress.update(percent, line1, line2, line3)
-    # Add to Playlist here ...
-    album_ids = []
-    track_ids = []
-    video_ids = []
-    for item in found_items:
-        if progress.iscanceled():
-            return
-        if item._userplaylists:
-            continue
-        if isinstance(item, VideoItem2):
-            video_ids.append('%s' % item.id)
-        elif isinstance(item, AlbumItem2):
-            tracks = session.get_album_items(item.id)
-            for track in tracks:
-                if track.available:
-                    if not track._userplaylists:
-                        if item.type == AlbumType.album or item.type == AlbumType.ep:
-                            album_ids.append('%s' % track.id)
-                        else:
-                            track_ids.append('%s' % track.id)
-                    break
-    if len(album_ids) > 0 or len(track_ids) > 0 or len(video_ids) > 0:
-        line3 = _S(30441)
-        progress.update(percent, line1, line2, line3)
-        if len(album_ids) > 0 and album_playlist.id:
-            album_playlist._etag = None
-            session.user.add_playlist_entries(album_playlist, album_ids)
-        if len(track_ids) > 0 and track_playlist.id:
-            track_playlist._etag = None
-            session.user.add_playlist_entries(track_playlist, track_ids)
-        if len(video_ids) > 0 and video_playlist.id:
-            video_playlist._etag = None
-            session.user.add_playlist_entries(video_playlist, video_ids)
-    return
-
-
 @plugin.route('/search_artist_music')
 def search_artist_music():
     if not session.is_logged_in:
         xbmcgui.Dialog().notification(plugin.name, _S(30404), xbmcgui.NOTIFICATION_ERROR)
+        return
+    if config.getSetting('search_artist_music_running') == 'true':
+        if xbmcgui.Dialog().yesno(heading=_S(30437), line1=_S(30445), line2=_S(30446)):
+            config.setSetting('search_artist_music_abort', 'true')
         return
     item = item_info.getSelectedListItem()
     artists = []
@@ -627,39 +571,11 @@ def search_artist_music():
     config.setSetting('default_trackplaylist_id', track_playlist.id if track_playlist.id else '')
     config.setSetting('default_videoplaylist_id', video_playlist.id if video_playlist.id else '')
     # Searching now
-    progress = xbmcgui.DialogProgress()
-    progress.create(_S(30437))
-    progress.update(0, line1=_S(30411))
-    numItems = len(artists) * 3  # Albums, Singles, Videos
-    pos = 0
-    limit = item.get('limit', 20)
-    diff_days = item.get('diff_days', 90)
-    total = SearchResult()
-    for artist in artists:
-        if progress.iscanceled():
-            break
-        if VARIOUS_ARTIST_ID == '%s' % artist.id:
-            continue
-        debug.log('Searching for artist %s ...' % artist.name, xbmc.LOGNOTICE)
-        result = SearchResult()
-        pos += 1
-        if album_playlist.id:
-            items = session.get_artist_albums(artist.id, limit=limit)
-            search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
-        pos += 1
-        if album_playlist.id or track_playlist.id:
-            items = session.get_artist_albums_ep_singles(artist.id, limit=limit)
-            search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
-        pos += 1
-        if video_playlist.id:
-            items = session.get_artist_videos(artist.id, limit=limit)
-            search_artist_music_run(progress, pos, numItems, artist, items, diff_days, result, total, album_playlist, track_playlist, video_playlist)
-        if len(result.albums) > 0 or len(result.tracks) > 0 or len(result.videos) > 0:
-            total.artists.append(artist)
-    progress.update(100, line1=_S(30417))
-    xbmc.sleep(2000)
-    progress.close()
-    return
+    searcher = NewMusicSearcher(session, album_playlist, track_playlist, video_playlist, limit=item.get('limit', 20), diffDays=item.get('diff_days', 90))
+    config.setSetting('search_artist_music_running', 'true')
+    config.setSetting('search_artist_music_abort', 'false')
+    searcher.search(artists, thread_count=settings.max_thread_count)
+    config.setSetting('search_artist_music_running', 'false')
 
 #------------------------------------------------------------------------------
 # Context Menu Function
