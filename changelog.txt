@@ -1,3 +1,6 @@
+v0.1.10 (2017-09-18)
+- Fixed Unicode problem if Windows user name contains special characters
+
 v0.1.9 (2017-04-04)
 - Ignore HTTP errors during "Search for New Music"
 - Faster "Search for New Music" because it runs now in multiple background threads

@@ -73,6 +73,10 @@ class FuzzySession(TidalSession2):
                     msg = r.json().get('userMessage')
                 except:
                     pass
+                if r.status_code == 429:
+                    # Too Many Requests. Disable Album Cache
+                    self._config.cache_albums = False
+                    self.abortAlbumThreads = True
                 xbmcgui.Dialog().notification('%s Error %s' % (tidalPlugin.name, r.status_code), msg, xbmcgui.NOTIFICATION_ERROR)
         except:
             pass

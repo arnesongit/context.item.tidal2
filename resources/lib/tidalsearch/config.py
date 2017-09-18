@@ -58,8 +58,8 @@ class Config(object):
         self.addon_name = addon.getAddonInfo('name')
         self.addon_path = addon.getAddonInfo('path').decode('utf-8')
         self.addon_base_url = 'plugin://' + self.addon_id
-        self.addon_fanart = os.path.join(self.addon_path, 'fanart.jpg').decode('utf-8')
-        self.addon_icon = os.path.join(self.addon_path, 'icon.png').decode('utf-8')
+        self.addon_fanart = os.path.join(self.addon_path, 'fanart.jpg')
+        self.addon_icon = os.path.join(self.addon_path, 'icon.png')
 
         self.import_export_path = addon.getSetting('import_export_path').decode('utf-8')
 
