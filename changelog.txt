@@ -1,3 +1,6 @@
+v0.1.11 (2018-06-09)
+- Artists can now be locked for "Search for New Music"
+
 v0.1.10 (2017-09-18)
 - Fixed Unicode problem if Windows user name contains special characters
 

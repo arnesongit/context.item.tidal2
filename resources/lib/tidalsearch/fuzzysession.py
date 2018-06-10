@@ -477,8 +477,12 @@ class NewMusicSearcher(object):
 
     def search(self, artists, thread_count=1):
         for artist in artists:
-            if VARIOUS_ARTIST_ID <> '%s' % artist.id:
-                self.artistQueue.put(artist)
+            try:
+                if VARIOUS_ARTIST_ID <> '%s' % artist.id and not artist._isLocked:
+                    self.artistQueue.put(artist)
+            except:
+                if VARIOUS_ARTIST_ID <> '%s' % artist.id:
+                    self.artistQueue.put(artist)
         self.artistCount = self.artistQueue.qsize()
         if self.artistCount < 1:
             debug.log('No Artist to search ...')
