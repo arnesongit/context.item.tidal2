@@ -17,7 +17,7 @@
 
 from __future__ import unicode_literals
 
-import traceback, urllib, os, threading
+import traceback, urllib, os
 from datetime import datetime
 
 import xbmc, xbmcgui, xbmcvfs
@@ -238,7 +238,7 @@ def convert_to_playlist(item_type):
             answer = 1 # Playlist not set
         if answer > 0:
             if answer == 1:
-                playlist = session.user.selectPlaylistDialog(_S(30409) % _P('tracks' if item_type.startswith('track') else 'videos'), allowNew=True)
+                playlist = session.user.selectPlaylistDialog(_S(30409).format(what=_P('tracks' if item_type.startswith('track') else 'videos')), allowNew=True)
                 if playlist:
                     item['playlist_id'] = playlist.id
                     item['playlist'] = playlist.title
@@ -324,7 +324,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
     progress.update(percent, line1, line2, line3)
     xbmc.sleep(2000)
     foundItems = len(items)
-    line2 = _S(30413) % (foundItems, numItems)
+    line2 = _S(30413).format(n=foundItems, m=numItems)
     if progress.iscanceled():
         yes = xbmcgui.Dialog().yesno(_S(30414), _S(30415), line2, _S(30416))
         if not yes:
@@ -399,7 +399,7 @@ def favorites_import(what):
 
 @plugin.route('/favorites/delete_all/<what>')
 def favorites_delete_all(what):
-    ok = xbmcgui.Dialog().yesno(heading=_S(30430) % _P(what), line1=_S(30431).format(what=_P(what)))
+    ok = xbmcgui.Dialog().yesno(heading=_S(30430).format(what=_P(what)), line1=_S(30431).format(what=_P(what)))
     if ok:
         if what == 'playlists':
             session.user.favorites.delete_all(what=_T('Playlists'), action=session.user.favorites.playlists, remove=session.user.favorites.remove_playlist)
@@ -419,7 +419,6 @@ def user_playlist_export(playlist_id):
     if not session.is_logged_in:
         return
     try:
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         playlist = session.get_playlist(playlist_id)
         if playlist and playlist.numberOfItems > 0:
             filename = 'playlist_%s_%s.cfg' % (playlist.title, datetime.now().strftime('%Y-%m-%d-%H%M%S'))
@@ -427,8 +426,6 @@ def user_playlist_export(playlist_id):
             session.user.export_playlists([playlist], filename)
     except Exception, e:
         debug.logException(e)
-    finally:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
 
 @plugin.route('/user_playlist_export_all')
@@ -436,14 +433,11 @@ def user_playlist_export_all():
     if not session.is_logged_in:
         return
     try:
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         items = session.user.playlists()
         filename = 'playlist_all_%s.cfg' % datetime.now().strftime('%Y-%m-%d-%H%M%S')
         session.user.export_playlists(items, filename)
     except Exception, e:
         debug.logException(e)
-    finally:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
 
 @plugin.route('/user_playlist_import')
@@ -458,12 +452,9 @@ def user_playlist_import():
         return
     name = os.path.join(path, files[selected])
     try:
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         session.user.import_playlists(name)
     except Exception, e:
         debug.logException(e)
-    finally:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )    
 
 
 @plugin.route('/search_artist_music')
@@ -493,9 +484,9 @@ def search_artist_music():
         return
     # Submenu: Parameters for Playlist-Generation
     cmds = [('action', _S(30405)),
-            ('album_playlist', _S(30409) % _P('albums') + ': '),
-            ('track_playlist', _S(30409) % _P('tracks') + ': '),
-            ('video_playlist', _S(30409) % _P('videos') + ': '),
+            ('album_playlist', _S(30409).format(what=_P('albums')) + ': '),
+            ('track_playlist', _S(30409).format(what=_P('tracks')) + ': '),
+            ('video_playlist', _S(30409).format(what=_P('videos')) + ': '),
             ('limit', _S(30438) + ': '),
             ('diff_days', _S(30439) + ': '),
             ]
@@ -539,7 +530,7 @@ def search_artist_music():
         answer = xbmcgui.Dialog().select(_S(30437), menue)
         if answer > 0:
             if answer >= 1 and answer <= 3:
-                playlist = session.user.selectPlaylistDialog(_S(30409) % _P(['', 'albums', 'tracks', 'videos'][answer]), allowNew=True)
+                playlist = session.user.selectPlaylistDialog(_S(30409).format(what=_P(['', 'albums', 'tracks', 'videos'][answer])), allowNew=True)
                 if playlist:
                     item[['', 'album_playlist_id', 'track_playlist_id', 'video_playlist_id'][answer]] = playlist.id
                     item[['', 'album_playlist', 'track_playlist', 'video_playlist'][answer]] = playlist.title
@@ -592,25 +583,25 @@ def context_menu():
         commands.append( (_S(30422), 'RunPlugin(plugin://%s/convert_to_playlist/videos)' % CONST.addon_id) )
     if item.get('FileNameAndPath').find('%s/favorites/artists' % _tidal_addon_id) >= 0:
         commands.append( (_S(30437), 'RunPlugin(plugin://%s/search_artist_music)' % CONST.addon_id) )
-        commands.append( (_S(30426) % _P('artists'), 'RunPlugin(plugin://%s/favorites/export/artists)' % CONST.addon_id) )
-        commands.append( (_S(30427) % _P('artists'), 'RunPlugin(plugin://%s/favorites/import/artists)' % CONST.addon_id) )
-        commands.append( (_S(30436) % _P('artists'), 'RunPlugin(plugin://%s/favorites/delete_all/artists)' % CONST.addon_id) )
+        commands.append( (_S(30426).format(what=_P('artists')), 'RunPlugin(plugin://%s/favorites/export/artists)' % CONST.addon_id) )
+        commands.append( (_S(30427).format(what=_P('artists')), 'RunPlugin(plugin://%s/favorites/import/artists)' % CONST.addon_id) )
+        commands.append( (_S(30436).format(what=_P('artists')), 'RunPlugin(plugin://%s/favorites/delete_all/artists)' % CONST.addon_id) )
     elif item.get('FileNameAndPath').find('%s/favorites/albums' % _tidal_addon_id) >= 0:
-        commands.append( (_S(30426) % _P('albums'), 'RunPlugin(plugin://%s/favorites/export/albums)' % CONST.addon_id) )
-        commands.append( (_S(30427) % _P('albums'), 'RunPlugin(plugin://%s/favorites/import/albums)' % CONST.addon_id) )
-        commands.append( (_S(30436) % _P('albums'), 'RunPlugin(plugin://%s/favorites/delete_all/albums)' % CONST.addon_id) )
+        commands.append( (_S(30426).format(what=_P('albums')), 'RunPlugin(plugin://%s/favorites/export/albums)' % CONST.addon_id) )
+        commands.append( (_S(30427).format(what=_P('albums')), 'RunPlugin(plugin://%s/favorites/import/albums)' % CONST.addon_id) )
+        commands.append( (_S(30436).format(what=_P('albums')), 'RunPlugin(plugin://%s/favorites/delete_all/albums)' % CONST.addon_id) )
     elif item.get('FileNameAndPath').find('%s/favorites/playlists' % _tidal_addon_id) >= 0:
-        commands.append( (_S(30426) % _P('playlists'), 'RunPlugin(plugin://%s/favorites/export/playlists)' % CONST.addon_id) )
-        commands.append( (_S(30427) % _P('playlists'), 'RunPlugin(plugin://%s/favorites/import/playlists)' % CONST.addon_id) )
-        commands.append( (_S(30436) % _P('playlists'), 'RunPlugin(plugin://%s/favorites/delete_all/playlists)' % CONST.addon_id) )
+        commands.append( (_S(30426).format(what=_P('playlists')), 'RunPlugin(plugin://%s/favorites/export/playlists)' % CONST.addon_id) )
+        commands.append( (_S(30427).format(what=_P('playlists')), 'RunPlugin(plugin://%s/favorites/import/playlists)' % CONST.addon_id) )
+        commands.append( (_S(30436).format(what=_P('playlists')), 'RunPlugin(plugin://%s/favorites/delete_all/playlists)' % CONST.addon_id) )
     elif item.get('FileNameAndPath').find('%s/favorites/tracks' % _tidal_addon_id) >= 0:
-        commands.append( (_S(30426) % _P('tracks'), 'RunPlugin(plugin://%s/favorites/export/tracks)' % CONST.addon_id) )
-        commands.append( (_S(30427) % _P('tracks'), 'RunPlugin(plugin://%s/favorites/import/tracks)' % CONST.addon_id) )
-        commands.append( (_S(30436) % _P('tracks'), 'RunPlugin(plugin://%s/favorites/delete_all/tracks)' % CONST.addon_id) )
+        commands.append( (_S(30426).format(what=_P('tracks')), 'RunPlugin(plugin://%s/favorites/export/tracks)' % CONST.addon_id) )
+        commands.append( (_S(30427).format(what=_P('tracks')), 'RunPlugin(plugin://%s/favorites/import/tracks)' % CONST.addon_id) )
+        commands.append( (_S(30436).format(what=_P('tracks')), 'RunPlugin(plugin://%s/favorites/delete_all/tracks)' % CONST.addon_id) )
     elif item.get('FileNameAndPath').find('%s/favorites/videos' % _tidal_addon_id) >= 0:
-        commands.append( (_S(30426) % _P('videos'), 'RunPlugin(plugin://%s/favorites/export/videos)' % CONST.addon_id) )
-        commands.append( (_S(30427) % _P('videos'), 'RunPlugin(plugin://%s/favorites/import/videos)' % CONST.addon_id) )
-        commands.append( (_S(30436) % _P('videos'), 'RunPlugin(plugin://%s/favorites/delete_all/videos)' % CONST.addon_id) )
+        commands.append( (_S(30426).format(what=_P('videos')), 'RunPlugin(plugin://%s/favorites/export/videos)' % CONST.addon_id) )
+        commands.append( (_S(30427).format(what=_P('videos')), 'RunPlugin(plugin://%s/favorites/import/videos)' % CONST.addon_id) )
+        commands.append( (_S(30436).format(what=_P('videos')), 'RunPlugin(plugin://%s/favorites/delete_all/videos)' % CONST.addon_id) )
     elif item.get('FileNameAndPath').find('%s/user_playlists' % _tidal_addon_id) >= 0:
         commands.append( (_S(30433), 'RunPlugin(plugin://%s/user_playlist_export_all)' % CONST.addon_id) )
         commands.append( (_S(30434), 'RunPlugin(plugin://%s/user_playlist_import)' % CONST.addon_id) )

@@ -4,6 +4,7 @@
     <string id="30001">TIDAL2 Search ...</string>
     <string id="30003">Export/Import Path</string>
     <string id="30004">Max. Number of simultaneous search requests</string>
+    <string id="30011">Globals</string>
     <string id="30070">Enable Debug-Logging</string>
 
     <!-- Search Settings -->
@@ -39,11 +40,11 @@
     <string id="30406">From Position</string>
     <string id="30407">To Position</string>
     <string id="30408">Generate Playlist</string>
-    <string id="30409">Playlist for %s</string>
+    <string id="30409">Playlist for {what}</string>
     <string id="30410">Searching in TIDAL ...</string>
     <string id="30411">Searching ...</string>
     <string id="30412">Not Found</string>
-    <string id="30413">%s of %s Items found</string>
+    <string id="30413">{n} of {m} Items found</string>
     <string id="30414">Search canceled</string>
     <string id="30415">Search aborted by user.</string>
     <string id="30416">Insert found Items to the Playlist ?</string>
@@ -56,17 +57,17 @@
     <string id="30423">Addon Settings</string>
     <string id="30424">ListItem Info</string>
     <string id="30425">Authorization problem</string>
-    <string id="30426">Export Favorite %s ...</string>
-    <string id="30427">Import Favorite %s ...</string>
+    <string id="30426">Export Favorite {what} ...</string>
+    <string id="30427">Import Favorite {what} ...</string>
     <string id="30428">{n} exported</string>
     <string id="30429">{n} imported</string>
-    <string id="30430">Delete Favorite %s</string>
+    <string id="30430">Delete Favorite {what}</string>
     <string id="30431">Remove all {what} from Favorites ?</string>
     <string id="30432">Import {what}</string>
     <string id="30433">Export User-Playlists</string>
     <string id="30434">Import User-Playlists ...</string>
     <string id="30435">Export User-Playlist</string>
-    <string id="30436">Delete all Favorite %s</string>
+    <string id="30436">Delete all Favorite {what}</string>
     <string id="30437">Search for New Music ...</string>
     <string id="30438">Limit for Search Results</string>
     <string id="30439">Max. age in days</string>

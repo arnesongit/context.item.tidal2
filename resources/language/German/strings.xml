@@ -4,6 +4,7 @@
     <string id="30001">TIDAL2 Search ...</string>
     <string id="30003">Export-/Import-Verzeichnis</string>
     <string id="30004">Max. Anzahl gleichzeitiger Such-Anfragen</string>
+    <string id="30011">Allgemeines</string>
     <string id="30070">Debug-Logging aktivieren</string>
 
     <!-- Search Settings -->
@@ -39,11 +40,11 @@
     <string id="30406">Von Position</string>
     <string id="30407">Bis Position</string>
     <string id="30408">Playliste anlegen</string>
-    <string id="30409">Playliste für %s</string>
+    <string id="30409">Playliste für {what}</string>
     <string id="30410">Suche in TIDAL ...</string>
     <string id="30411">Suche ...</string>
     <string id="30412">Nicht gefunden</string>
-    <string id="30413">%s von %s Einträge gefunden</string>
+    <string id="30413">{n} von {m} Einträge gefunden</string>
     <string id="30414">Suche abgebrochen</string>
     <string id="30415">Suche vom Benutzer abgebrochen.</string>
     <string id="30416">Gefundene Einträge in Playliste einfügen ?</string>
@@ -56,17 +57,17 @@
     <string id="30423">Addon Einstellungen</string>
     <string id="30424">ListItem Info</string>
     <string id="30425">Anmeldefehler !</string>
-    <string id="30426">%s-Favoriten exportieren ...</string>
-    <string id="30427">%s-Favoriten importieren ...</string>
+    <string id="30426">{what}-Favoriten exportieren ...</string>
+    <string id="30427">{what}-Favoriten importieren ...</string>
     <string id="30428">{n} exportiert</string>
     <string id="30429">{n} importiert</string>
-    <string id="30430">%s-Favoriten löschen</string>
+    <string id="30430">{what}-Favoriten löschen</string>
     <string id="30431">Sollen alle {what}-Favoriten gelöscht werden ?</string>
     <string id="30432">{what} importieren</string>
     <string id="30433">User-Playlisten exportieren</string>
     <string id="30434">User-Playlisten importieren ...</string>
     <string id="30435">User-Playliste exportieren</string>
-    <string id="30436">Alle %s-Favoriten löschen</string>
+    <string id="30436">Alle {what}-Favoriten löschen</string>
     <string id="30437">Suche nach neuer Musik ...</string>
     <string id="30438">Limit für Such-Ergebnisse</string>
     <string id="30439">Max. Alter in Tagen</string>

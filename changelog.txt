@@ -1,3 +1,9 @@
+v0.1.12 (2018-12-31)
+- First Changes für Kodi 18.x compatibility:
+  - BusyDialog is not allowed anymore, using DialogProgress instead
+  - xbmc.abortRequested is depricated, now using xbmc.Monitor().waitForAbort()
+  - Removed '%s' from any line in strings.xml
+
 v0.1.11 (2018-06-09)
 - Artists can now be locked for "Search for New Music"
 

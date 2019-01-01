@@ -32,7 +32,7 @@ from requests import HTTPError
 from koditidal import _T, _P, VARIOUS_ARTIST_ID
 from koditidal2 import plugin as tidalPlugin, addon as tidalAddon, TidalConfig2, TidalSession2, User2, Favorites2, VideoItem2, AlbumItem2
 from tidalapi import SubscriptionType, AlbumType
-from tidalapi.models import SearchResult
+from tidalapi.models import SearchResult, PlayableMedia
 
 from debug import DebugHelper
 import config
@@ -268,6 +268,7 @@ class FuzzyFavorites(Favorites2):
             if len(path) == 0:
                 return
             items = action()
+            items = [item for item in items if not isinstance(item, PlayableMedia) or item.available]
             if items and len(items) > 0:
                 lines = ['%s' % item.id + '\t' + item.getLabel(extended=False) + '\n' for item in items]
                 full_path = os.path.join(path, filename)
@@ -301,7 +302,7 @@ class FuzzyFavorites(Favorites2):
         try:
             ok = False
             progress = xbmcgui.DialogProgress()
-            progress.create(_S(30430) % _P(what))
+            progress.create(_S(30430).format(what=_P(what)))
             idx = 0
             items = action()
             for item in items:
@@ -332,8 +333,15 @@ class FuzzyUser(User2):
         full_path = os.path.join(path, filename)
         fd = xbmcvfs.File(full_path, 'w')
         numItems = 0
+        progress = xbmcgui.DialogProgress()
+        progress.create(_S(30433))
+        idx = 0
         for playlist in playlists:
+            idx = idx + 1
+            percent = (idx * 100) / len(playlists) 
+            progress.update(percent, playlist.getLabel(extended=False))
             items = self._session.get_playlist_items(playlist=playlist)
+            items = [item for item in items if item.available]
             if len(items) > 0:
                 numItems += playlist.numberOfItems
                 fd.write(repr({ 'uuid': playlist.id,
@@ -341,6 +349,7 @@ class FuzzyUser(User2):
                                 'description': playlist.description,
                                 'ids': [item.id for item in items]  }) + b'\n')
         fd.close()
+        progress.close()
         xbmcgui.Dialog().notification(_P('Playlists'), _S(30428).format(n=numItems), xbmcgui.NOTIFICATION_INFO)
 
     def import_playlists(self, filename):
@@ -385,6 +394,48 @@ class FuzzyUser(User2):
             debug.logException(e)
         return ok
 
+    def add_playlist_entries(self, playlist=None, item_ids=[]):
+        ok = False
+        try:
+            ok = User2.add_playlist_entries(self, playlist=playlist, item_ids=item_ids)
+        except:
+            try:
+                progress = xbmcgui.DialogProgress()
+                progress.create(_S(30434))
+                valid_ids = []
+                idx = 0
+                notFound = 0
+                for item_id in item_ids:
+                    if progress.iscanceled():
+                        break
+                    validItem = None
+                    try:
+                        validItem = self._session.get_track(item_id)
+                    except:
+                        pass
+                    if not validItem:
+                        try:
+                            validItem = self._session.get_video(item_id)
+                        except:
+                            pass
+                    idx = idx + 1
+                    percent = (idx * 100) / len(item_ids)
+                    if validItem:
+                        line1 = validItem.getLabel(extended=False)
+                        valid_ids.append(item_id)
+                    else:
+                        line1 = '%s: %s' % (item_id, _S(30412))
+                        notFound = notFound + 1
+                    line3 = '%s: %s' % (_S(30412), notFound)
+                    progress.update(percent, line1=line1, line2=_S(30413).format(n=len(valid_ids), m=len(item_ids)), line3=line3)
+                if len(valid_ids) > 0 and not progress.iscanceled():
+                    ok = User2.add_playlist_entries(self, playlist=playlist, item_ids=valid_ids)
+            except:
+                pass
+            finally:
+                progress.close()
+        return ok
+
 
 class NewMusicSearcher(object):
 
@@ -418,7 +469,7 @@ class NewMusicSearcher(object):
     def search_thread(self):
         try:
             debug.log('Search Thread %s started.' % currentThread().ident)
-            while not xbmc.abortRequested and not self.abortThreads:
+            while not xbmc.Monitor().waitForAbort(timeout=0.01) and not self.abortThreads:
                 try:
                     artist = self.artistQueue.get_nowait()
                 except:
@@ -508,7 +559,7 @@ class NewMusicSearcher(object):
             stopWatch = startTime
             remainingArtists = self.artistCount
             lastCount = self.artistCount
-            while len(self.runningThreads.keys()) > 0 and not xbmc.abortRequested:
+            while len(self.runningThreads.keys()) > 0 and not xbmc.Monitor().waitForAbort(timeout=0.01):
                 for worker in self.runningThreads.values():
                     worker.join(5)
                     if config.getSetting('search_artist_music_abort') == 'true':
