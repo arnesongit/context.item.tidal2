@@ -76,7 +76,7 @@ def search_selected():
 def search_field(field, text):
     # Unquote special Characters
     s_field = urllib.unquote_plus(field).decode('utf-8').strip()
-    s_text = urllib.unquote_plus(text).decode('utf-8').strip()
+    s_text = urllib.unquote_plus(text.encode('utf-8')).decode('utf-8').strip()
     values = {'field': s_field, 'text': s_text}
     config.setSetting('search_parameters_field', repr(values))
     # Execute Search in new Container
@@ -142,11 +142,11 @@ def search_fuzzy():
 def search_fuzzy_fields(artist, title, album, albumartist, year):
     # This Function should be called with RunPlugin(...) and not with Container.Update(...)
     # Unquote special Characters
-    s_artist = urllib.unquote_plus(artist).decode('utf-8').strip()
-    s_title = urllib.unquote_plus(title).decode('utf-8').strip()
-    s_album = urllib.unquote_plus(album).decode('utf-8').strip()
-    s_albumartist = urllib.unquote_plus(albumartist).decode('utf-8').strip()
-    s_year = urllib.unquote_plus(year).decode('utf-8').strip()
+    s_artist = urllib.unquote_plus(artist.encode('utf-8')).decode('utf-8').strip()
+    s_title = urllib.unquote_plus(title.encode('utf-8')).decode('utf-8').strip()
+    s_album = urllib.unquote_plus(album.encode('utf-8')).decode('utf-8').strip()
+    s_albumartist = urllib.unquote_plus(albumartist.encode('utf-8')).decode('utf-8').strip()
+    s_year = urllib.unquote_plus(year.encode('utf-8')).decode('utf-8').strip()
     # Save Search Parameters
     values = {'artist': s_artist, 'title': s_title, 'album': s_album, 'albumartist': s_albumartist, 'year': s_year}
     config.setSetting('search_parameters', repr(values))

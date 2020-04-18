@@ -1,3 +1,6 @@
+v0.1.13 (2020-04-18)
+- Fixed unicode problems during search
+
 v0.1.12 (2018-12-31)
 - First Changes für Kodi 18.x compatibility:
   - BusyDialog is not allowed anymore, using DialogProgress instead
