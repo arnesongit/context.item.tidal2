@@ -29,8 +29,8 @@ import xbmc, xbmcplugin, xbmcgui, xbmcvfs
 
 from requests import HTTPError
 
-from koditidal import _T, _P, VARIOUS_ARTIST_ID
-from koditidal2 import plugin as tidalPlugin, addon as tidalAddon, TidalConfig2, TidalSession2, User2, Favorites2, VideoItem2, AlbumItem2
+from koditidal import plugin as tidalPlugin, addon as tidalAddon, _T, _P, VARIOUS_ARTIST_ID
+from koditidal import TidalConfig, TidalSession, TidalUser, TidalFavorites, VideoItem, AlbumItem
 from tidalapi import SubscriptionType, AlbumType
 from tidalapi.models import SearchResult, PlayableMedia
 
@@ -47,19 +47,19 @@ debug = DebugHelper(pluginName=settings.addon_name,
 # Fuzzy Functions
 #------------------------------------------------------------------------------
 
-class FuzzyConfig(TidalConfig2):
+class FuzzyConfig(TidalConfig):
 
     def __init__(self):
-        TidalConfig2.__init__(self)
+        TidalConfig.__init__(self)
 
     def load(self):
-        TidalConfig2.load(self)
+        TidalConfig.load(self)
 
 
-class FuzzySession(TidalSession2):
+class FuzzySession(TidalSession):
 
     def __init__(self, config=FuzzyConfig()):
-        TidalSession2.__init__(self, config=config)
+        TidalSession.__init__(self, config=config)
 
     def _http_error(self, e):
         try:
@@ -75,7 +75,6 @@ class FuzzySession(TidalSession2):
                     pass
                 if r.status_code == 429:
                     # Too Many Requests. Disable Album Cache
-                    self._config.cache_albums = False
                     self.abortAlbumThreads = True
                 xbmcgui.Dialog().notification('%s Error %s' % (tidalPlugin.name, r.status_code), msg, xbmcgui.NOTIFICATION_ERROR)
         except:
@@ -88,7 +87,7 @@ class FuzzySession(TidalSession2):
     def get_playlist(self, playlist_id):
         playlist = None
         try:
-            playlist = TidalSession2.get_playlist(self, playlist_id)
+            playlist = TidalSession.get_playlist(self, playlist_id)
         except Exception as e:
             self._http_error(e)
         return playlist
@@ -96,7 +95,7 @@ class FuzzySession(TidalSession2):
     def get_playlist_items(self, playlist, offset=0, limit=9999, ret='playlistitems'):
         items = []
         try:
-            items = TidalSession2.get_playlist_items(self, playlist, offset=offset, limit=limit, ret=ret)
+            items = TidalSession.get_playlist_items(self, playlist, offset=offset, limit=limit, ret=ret)
         except Exception as e:
             self._http_error(e)
         return items
@@ -104,7 +103,7 @@ class FuzzySession(TidalSession2):
     def get_playlist_tracks(self, playlist_id, offset=0, limit=9999):
         items = []
         try:
-            items = TidalSession2.get_playlist_tracks(self, playlist_id, offset=offset, limit=limit)
+            items = TidalSession.get_playlist_tracks(self, playlist_id, offset=offset, limit=limit)
         except Exception as e:
             self._http_error(e)
         return items
@@ -112,7 +111,7 @@ class FuzzySession(TidalSession2):
     def get_album(self, album_id, withCache=True):
         album = None
         try:
-            album = TidalSession2.get_album(self, album_id, withCache=withCache)
+            album = TidalSession.get_album(self, album_id, withCache=withCache)
         except Exception as e:
             self._http_error(e)
         return album
@@ -120,7 +119,7 @@ class FuzzySession(TidalSession2):
     def get_album_items(self, album_id, ret='playlistitems'):
         items = []
         try:
-            items = TidalSession2.get_album_items(self, album_id, ret=ret)
+            items = TidalSession.get_album_items(self, album_id, ret=ret)
         except Exception as e:
             self._http_error(e)
         return items
@@ -128,7 +127,7 @@ class FuzzySession(TidalSession2):
     def get_album_tracks(self, album_id, withAlbum=True):
         items = []
         try:
-            items = TidalSession2.get_album_tracks(self, album_id, withAlbum=withAlbum)
+            items = TidalSession.get_album_tracks(self, album_id, withAlbum=withAlbum)
         except Exception as e:
             self._http_error(e)
         return items
@@ -256,10 +255,10 @@ class FuzzySession(TidalSession2):
             self.add_list_items([], end=True)
 
 
-class FuzzyFavorites(Favorites2):
+class FuzzyFavorites(TidalFavorites):
 
     def __init__(self, session, user_id):
-        Favorites2.__init__(self, session, user_id)
+        TidalFavorites.__init__(self, session, user_id)
 
     def export_ids(self, what, filename, action):
         try:
@@ -320,10 +319,10 @@ class FuzzyFavorites(Favorites2):
         return ok
 
 
-class FuzzyUser(User2):
+class FuzzyUser(TidalUser):
 
     def __init__(self, session, user_id, subscription_type=SubscriptionType.hifi):
-        User2.__init__(self, session, user_id, subscription_type)
+        TidalUser.__init__(self, session, user_id, subscription_type)
         self.favorites = FuzzyFavorites(session, user_id)
 
     def export_playlists(self, playlists, filename):
@@ -397,7 +396,7 @@ class FuzzyUser(User2):
     def add_playlist_entries(self, playlist=None, item_ids=[]):
         ok = False
         try:
-            ok = User2.add_playlist_entries(self, playlist=playlist, item_ids=item_ids)
+            ok = TidalUser.add_playlist_entries(self, playlist=playlist, item_ids=item_ids)
         except:
             try:
                 progress = xbmcgui.DialogProgress()
@@ -429,7 +428,7 @@ class FuzzyUser(User2):
                     line3 = '%s: %s' % (_S(30412), notFound)
                     progress.update(percent, line1=line1, line2=_S(30413).format(n=len(valid_ids), m=len(item_ids)), line3=line3)
                 if len(valid_ids) > 0 and not progress.iscanceled():
-                    ok = User2.add_playlist_entries(self, playlist=playlist, item_ids=valid_ids)
+                    ok = TidalUser.add_playlist_entries(self, playlist=playlist, item_ids=valid_ids)
             except:
                 pass
             finally:
@@ -486,11 +485,11 @@ class NewMusicSearcher(object):
                         if self.abortThreads: break
                         diff = datetime.today() - item.releaseDate
                         if not item._userplaylists and diff.days < self.diffDays:
-                            if isinstance(item, VideoItem2):
+                            if isinstance(item, VideoItem):
                                 if not '%s' % item.id in self.found_videos:
                                     debug.log('Found new Video: %s' % item.getLabel(extended=False))
                                     self.found_videos.append('%s' % item.id)
-                            elif isinstance(item, AlbumItem2):
+                            elif isinstance(item, AlbumItem):
                                 tracks = self.session.get_album_items(item.id)
                                 for track in tracks:
                                     if track.available:

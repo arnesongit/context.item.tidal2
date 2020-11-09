@@ -26,7 +26,7 @@ from requests import HTTPError
 
 from tidalapi import Playlist
 from koditidal import _T, _P, addon as tidalAddon, _addon_id as _tidal_addon_id
-from koditidal2 import PlaylistItem2
+from koditidal import PlaylistItem
 
 from resources.lib.tidalsearch.config import CONST, settings, _S
 from resources.lib.tidalsearch.fuzzysession import FuzzySession, NewMusicSearcher, debug
@@ -498,21 +498,21 @@ def search_artist_music():
     if not album_playlist and tidalAddon.getSetting('default_albumplaylist_id'):
         album_playlist = session.get_playlist(tidalAddon.getSetting('default_albumplaylist_id'))
     if not album_playlist:
-        album_playlist = PlaylistItem2(Playlist())
+        album_playlist = PlaylistItem(Playlist())
         album_playlist.title = ''
     if config.getSetting('default_trackplaylist_id'):
         track_playlist = session.get_playlist(config.getSetting('default_trackplaylist_id'))
     if not track_playlist and tidalAddon.getSetting('default_trackplaylist_id'):
         track_playlist = session.get_playlist(tidalAddon.getSetting('default_trackplaylist_id'))
     if not track_playlist:
-        track_playlist = PlaylistItem2(Playlist())
+        track_playlist = PlaylistItem(Playlist())
         track_playlist.title = ''
     if config.getSetting('default_videoplaylist_id'):
         video_playlist = session.get_playlist(config.getSetting('default_videoplaylist_id'))
     if not video_playlist and tidalAddon.getSetting('default_videoplaylist_id'):
         video_playlist = session.get_playlist(tidalAddon.getSetting('default_videoplaylist_id'))
     if not video_playlist:
-        video_playlist = PlaylistItem2(Playlist())
+        video_playlist = PlaylistItem(Playlist())
         video_playlist.title = ''
     item = {'action': '',
             'album_playlist': album_playlist.title,
@@ -544,13 +544,13 @@ def search_artist_music():
                     item[['', 'album_playlist_id', 'track_playlist_id', 'video_playlist_id'][answer]] = None
                     item[['', 'album_playlist', 'track_playlist', 'video_playlist'][answer]] = ''
                     if answer == 1:
-                        album_playlist = PlaylistItem2(Playlist())
+                        album_playlist = PlaylistItem(Playlist())
                         album_playlist.title = ''
                     elif answer == 2:
-                        track_playlist = PlaylistItem2(Playlist())
+                        track_playlist = PlaylistItem(Playlist())
                         track_playlist.title = ''
                     elif answer == 3:
-                        video_playlist = PlaylistItem2(Playlist())
+                        video_playlist = PlaylistItem(Playlist())
                         video_playlist.title = ''
             elif answer >= 4 and answer <= 5:
                 value = int('0%s' % xbmcgui.Dialog().input(cmds[answer][1], str(item.get(cmds[answer][0])), type=xbmcgui.INPUT_NUMERIC))

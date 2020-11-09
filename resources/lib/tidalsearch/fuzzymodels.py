@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 
 import re
 
-from koditidal2 import ArtistItem2, AlbumItem2, TrackItem2, VideoItem2
+from koditidal import ArtistItem, AlbumItem, TrackItem, VideoItem
 
 from .config import settings
 from .fuzzywuzzy import fuzz
@@ -78,7 +78,7 @@ def addFuzzyLevel(item, multiplier, searchField, resultField, checkBlacklist=Tru
 # Class FuzzyArtistItem
 #------------------------------------------------------------------------------
 
-class FuzzyArtistItem(ArtistItem2):
+class FuzzyArtistItem(ArtistItem):
 
     _matchLevel = 0
     _blacklist = []
@@ -117,7 +117,7 @@ class FuzzyArtistItem(ArtistItem2):
 # Class FuzzyAlbumItem
 #------------------------------------------------------------------------------
 
-class FuzzyAlbumItem(AlbumItem2):
+class FuzzyAlbumItem(AlbumItem):
 
     _matchLevel = 0
     _blacklist = []
@@ -172,7 +172,7 @@ class FuzzyAlbumItem(AlbumItem2):
 # Class FuzzyTrackItem
 #------------------------------------------------------------------------------
 
-class FuzzyTrackItem(TrackItem2):
+class FuzzyTrackItem(TrackItem):
 
     _matchLevel = 0
     _blacklist = []
@@ -191,7 +191,7 @@ class FuzzyTrackItem(TrackItem2):
         return cleanupText(self.getLabel())
 
     def getListItem(self):
-        url, li, isFolder = TrackItem2.getListItem(self)
+        url, li, isFolder = TrackItem.getListItem(self)
         li.setInfo('music', {'comment': ','.join(self.getComments()) })
         return (url, li, isFolder)
 
@@ -241,7 +241,7 @@ class FuzzyTrackItem(TrackItem2):
 # Class FuzzyVideoItem
 #------------------------------------------------------------------------------
 
-class FuzzyVideoItem(VideoItem2):
+class FuzzyVideoItem(VideoItem):
 
     _matchLevel = 0
     _blacklist = []
@@ -259,7 +259,7 @@ class FuzzyVideoItem(VideoItem2):
         return cleanupText(self.getLabel())
 
     def getListItem(self):
-        url, li, isFolder = VideoItem2.getListItem(self)
+        url, li, isFolder = VideoItem.getListItem(self)
         li.setInfo('music', {'comment': ','.join(self.getComments()) })
         return (url, li, isFolder)
 
