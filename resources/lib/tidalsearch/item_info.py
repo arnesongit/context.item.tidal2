@@ -22,7 +22,7 @@ from datetime import date
 import xbmc, xbmcgui
 
 from .config import settings, CONST
-from fuzzysession import debug
+from .fuzzysession import debug
 
 #------------------------------------------------------------------------------
 # Global Definitions

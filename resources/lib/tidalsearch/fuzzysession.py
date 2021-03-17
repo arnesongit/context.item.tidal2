@@ -277,7 +277,7 @@ class FuzzyFavorites(TidalFavorites):
                 f.close()
                 xbmcgui.Dialog().notification(_P(what), _S(30428).format(n=len(lines)), xbmcgui.NOTIFICATION_INFO)
                 ok = True
-        except Exception, e:
+        except Exception as e:
             debug.logException(e)
         return ok
 
@@ -293,7 +293,7 @@ class FuzzyFavorites(TidalFavorites):
                 ok = action(ids)
                 if ok:
                     xbmcgui.Dialog().notification(_P(what), _S(30429).format(n=len(ids)), xbmcgui.NOTIFICATION_INFO)
-        except Exception, e:
+        except Exception as e:
             debug.logException(e)
         return ok
 
@@ -312,7 +312,7 @@ class FuzzyFavorites(TidalFavorites):
                 progress.update(percent, item.getLabel(extended=False))
                 remove(item.id)
             ok = not progress.iscanceled()
-        except Exception, e:
+        except Exception as e:
             debug.logException(e)
         finally:
             progress.close()
@@ -389,7 +389,7 @@ class FuzzyUser(TidalUser):
                 ok = self.add_playlist_entries(playlist=playlist, item_ids=item_ids)
                 if ok:
                     xbmcgui.Dialog().notification(_T('Playlist'), _S(30429).format(n=playlist.title), xbmcgui.NOTIFICATION_INFO)
-        except Exception, e:
+        except Exception as e:
             debug.logException(e)
         return ok
 
@@ -519,7 +519,7 @@ class NewMusicSearcher(object):
                         debug.log('Too many requests. Aborting Workers ...', xbmc.LOGERROR)
                         self.albumQueue._init(9999)
                         xbmcgui.Dialog().notification(_S(30437), msg, xbmcgui.NOTIFICATION_ERROR)
-        except Exception, e:
+        except Exception as e:
             traceback.print_exc()
         self.runningThreads.pop(currentThread().ident, None)
         debug.log('Search Thread %s terminated.' % currentThread().ident)
@@ -528,10 +528,10 @@ class NewMusicSearcher(object):
     def search(self, artists, thread_count=1):
         for artist in artists:
             try:
-                if VARIOUS_ARTIST_ID <> '%s' % artist.id and not artist._isLocked:
+                if VARIOUS_ARTIST_ID != '%s' % artist.id and not artist._isLocked:
                     self.artistQueue.put(artist)
             except:
-                if VARIOUS_ARTIST_ID <> '%s' % artist.id:
+                if VARIOUS_ARTIST_ID != '%s' % artist.id:
                     self.artistQueue.put(artist)
         self.artistCount = self.artistQueue.qsize()
         if self.artistCount < 1:
@@ -551,7 +551,7 @@ class NewMusicSearcher(object):
                     worker = Thread(target=self.search_thread)
                     worker.start()
                     self.runningThreads.update({worker.ident: worker})
-                except Exception, e:
+                except Exception as e:
                     debug.log(str(e), xbmc.LOGERROR)
             debug.log('Waiting until all Threads are terminated')
             startTime = datetime.today()
@@ -618,7 +618,7 @@ class NewMusicSearcher(object):
             else:
                 debug.log('No new Music found !')
                 xbmcgui.Dialog().notification(_S(30437), _S(30443), icon=xbmcgui.NOTIFICATION_INFO)
-        except Exception, e:
+        except Exception as e:
             debug.log(str(e), xbmc.LOGERROR)
             xbmcgui.Dialog().notification(_S(30437), _S(30442), icon=xbmcgui.NOTIFICATION_ERROR)
         finally:

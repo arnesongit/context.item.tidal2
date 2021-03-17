@@ -350,7 +350,7 @@ def user_playlist_add_id(playlist_id, item_id):
             session.user.add_playlist_entries(playlist=playlist, item_ids=['%s' % item_id])
             numItems = playlist.numberOfItems + 1
             debug.log('Added ID %s to Playlist %s at position %s' % (item_id, playlist.title, numItems))
-    except Exception, e:
+    except Exception as e:
         debug.log(e, 'Failed to add ID %s to playlist %s' % (item_id, playlist_id), level=xbmc.LOGERROR)
         traceback.print_exc()
 
@@ -424,7 +424,7 @@ def user_playlist_export(playlist_id):
             filename = 'playlist_%s_%s.cfg' % (playlist.title, datetime.now().strftime('%Y-%m-%d-%H%M%S'))
             filename = filename.replace(' ', '_')
             session.user.export_playlists([playlist], filename)
-    except Exception, e:
+    except Exception as e:
         debug.logException(e)
 
 
@@ -436,7 +436,7 @@ def user_playlist_export_all():
         items = session.user.playlists()
         filename = 'playlist_all_%s.cfg' % datetime.now().strftime('%Y-%m-%d-%H%M%S')
         session.user.export_playlists(items, filename)
-    except Exception, e:
+    except Exception as e:
         debug.logException(e)
 
 
@@ -453,7 +453,7 @@ def user_playlist_import():
     name = os.path.join(path, files[selected])
     try:
         session.user.import_playlists(name)
-    except Exception, e:
+    except Exception as e:
         debug.logException(e)
 
 
