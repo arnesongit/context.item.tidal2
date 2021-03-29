@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Arne Svenson
+# Copyright (C) 2021 Arne Svenson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,11 +17,38 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from resources.lib.tidalsearch import main
+import os
+
+from kodi_six import xbmcaddon
+from routing import Plugin
 
 #------------------------------------------------------------------------------
-# MAIN Program of the Plugin
+# Global Definitions
 #------------------------------------------------------------------------------
 
-if __name__ == '__main__':
-    main.run()
+__addon_id__ = 'context.item.tidal2'
+addon = xbmcaddon.Addon(__addon_id__)
+
+class Const(object):
+    addon_id = addon.getAddonInfo('id')
+    addon_name = addon.getAddonInfo('name')
+    addon_path = addon.getAddonInfo('path')
+    addon_base_url = 'plugin://' + __addon_id__
+    addon_fanart = os.path.join(addon_path, 'fanart.jpg')
+    addon_icon = os.path.join(addon_path, 'icon.png')
+    youtube_addon_id = 'plugin.video.youtube'
+
+class KodiPlugin(Plugin):
+
+    def __init__(self):
+        try:
+            # Creates a Dump is sys.argv[] is empty !
+            Plugin.__init__(self, base_url=Const.addon_base_url)
+        except:
+            pass
+        self.base_url = Const.addon_base_url
+        self.name = Const.addon_name
+
+plugin = KodiPlugin()
+
+# End of File

@@ -1,34 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
-"""
-process.py
-
-Copyright (c) 2011 Adam Cohen
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"""
-
 from . import fuzz
 from . import utils
 import heapq
 import logging
+from functools import partial
 
 
 default_scorer = fuzz.WRatio
@@ -41,7 +17,7 @@ def extractWithoutOrder(query, choices, processor=default_processor, scorer=defa
     """Select the best match in a list or dictionary of choices.
 
     Find best matches in a list or dictionary of choices, return a
-    generator of tuples containing the match and it's score. If a dictionary
+    generator of tuples containing the match and its score. If a dictionary
     is used, also returns the key for each match.
 
     Arguments:
@@ -50,7 +26,7 @@ def extractWithoutOrder(query, choices, processor=default_processor, scorer=defa
             to be matched against the query. Dictionary arguments of
             {key: value} pairs will attempt to match the query against
             each value.
-        processor: Optional function of the form f(a) -> b, where a is an
+        processor: Optional function of the form f(a) -> b, where a is the query or
             individual choice and b is the choice to be used in matching.
 
             This can be used to match against, say, the first element of
@@ -73,7 +49,7 @@ def extractWithoutOrder(query, choices, processor=default_processor, scorer=defa
 
         If a list is used for choices, then the result will be 2-tuples.
         If a dictionary is used, then the result will be 3-tuples containing
-        he key for each match.
+        the key for each match.
 
         For example, searching for 'bird' in the dictionary
 
@@ -89,7 +65,7 @@ def extractWithoutOrder(query, choices, processor=default_processor, scorer=defa
 
     try:
         if choices is None or len(choices) == 0:
-            raise StopIteration
+            return
     except TypeError:
         pass
 
@@ -102,28 +78,42 @@ def extractWithoutOrder(query, choices, processor=default_processor, scorer=defa
     processed_query = processor(query)
 
     if len(processed_query) == 0:
-        logging.warning("Applied processor reduces input query to empty string, "
+        logging.warning(u"Applied processor reduces input query to empty string, "
                         "all comparisons will have score 0. "
                         "[Query: \'{0}\']".format(query))
 
-    # If the scorer performs full_ratio with force ascii don't run full_process twice
+    # Don't run full_process twice
     if scorer in [fuzz.WRatio, fuzz.QRatio,
                   fuzz.token_set_ratio, fuzz.token_sort_ratio,
-                  fuzz.partial_token_set_ratio, fuzz.partial_token_sort_ratio] \
+                  fuzz.partial_token_set_ratio, fuzz.partial_token_sort_ratio,
+                  fuzz.UWRatio, fuzz.UQRatio] \
             and processor == utils.full_process:
         processor = no_process
+
+    # Only process the query once instead of for every choice
+    if scorer in [fuzz.UWRatio, fuzz.UQRatio]:
+        pre_processor = partial(utils.full_process, force_ascii=False)
+        scorer = partial(scorer, full_process=False)
+    elif scorer in [fuzz.WRatio, fuzz.QRatio,
+                    fuzz.token_set_ratio, fuzz.token_sort_ratio,
+                    fuzz.partial_token_set_ratio, fuzz.partial_token_sort_ratio]:
+        pre_processor = partial(utils.full_process, force_ascii=True)
+        scorer = partial(scorer, full_process=False)
+    else:
+        pre_processor = no_process
+    processed_query = pre_processor(processed_query)
 
     try:
         # See if choices is a dictionary-like object.
         for key, choice in choices.items():
-            processed = processor(choice)
+            processed = pre_processor(processor(choice))
             score = scorer(processed_query, processed)
             if score >= score_cutoff:
                 yield (choice, score, key)
     except AttributeError:
         # It's a list; just iterate over it.
         for choice in choices:
-            processed = processor(choice)
+            processed = pre_processor(processor(choice))
             score = scorer(processed_query, processed)
             if score >= score_cutoff:
                 yield (choice, score)
@@ -133,7 +123,7 @@ def extract(query, choices, processor=default_processor, scorer=default_scorer, 
     """Select the best match in a list or dictionary of choices.
 
     Find best matches in a list or dictionary of choices, return a
-    list of tuples containing the match and it's score. If a dictionary
+    list of tuples containing the match and its score. If a dictionary
     is used, also returns the key for each match.
 
     Arguments:
@@ -142,7 +132,7 @@ def extract(query, choices, processor=default_processor, scorer=default_scorer, 
             to be matched against the query. Dictionary arguments of
             {key: value} pairs will attempt to match the query against
             each value.
-        processor: Optional function of the form f(a) -> b, where a is an
+        processor: Optional function of the form f(a) -> b, where a is the query or
             individual choice and b is the choice to be used in matching.
 
             This can be used to match against, say, the first element of
@@ -164,7 +154,7 @@ def extract(query, choices, processor=default_processor, scorer=default_scorer, 
 
         If a list is used for choices, then the result will be 2-tuples.
         If a dictionary is used, then the result will be 3-tuples containing
-        he key for each match.
+        the key for each match.
 
         For example, searching for 'bird' in the dictionary
 

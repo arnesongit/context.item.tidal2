@@ -15,18 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os, re
 from datetime import date
-import xbmc, xbmcgui
 
-from .config import settings, CONST
-from .fuzzysession import debug
+from kodi_six import xbmc, xbmcgui
 
-#------------------------------------------------------------------------------
-# Global Definitions
-#------------------------------------------------------------------------------
+from .common import Const
+from .config import log
 
 
 #------------------------------------------------------------------------------
@@ -35,7 +32,7 @@ from .fuzzysession import debug
 
 def showDialog(lines, timeout=0):
     win = xbmcgui.WindowDialog()
-    background_img  = xbmc.translatePath(os.path.join(settings.addon_path, 'resources','media','info_background.png'))
+    background_img  = os.path.join(Const.addon_path, 'resources','media','info_background.png')
     starty = 0
     h = 75 + 25 * len(lines)
     win.addControl(xbmcgui.ControlImage(x=0, y=starty, width=1920, height=h, filename=background_img, colorDiffuse='0xEEEEEEEE'))
@@ -83,7 +80,7 @@ def itemInfoDialog():
              'Type= \"%s\" %s' % (item.get('Type'), ','.join(tidalIds)),
              )
     for line in lines:
-        debug.log(line, xbmc.LOGNOTICE)
+        log.debug(line)
     showDialog(lines)
 
 #------------------------------------------------------------------------------
@@ -92,12 +89,12 @@ def itemInfoDialog():
 
 def getSelectedListItem():
     focusId = xbmcgui.Window().getFocusId()
-    pos = xbmc.getInfoLabel('Container(%s).Position' % focusId).decode('utf-8')
+    pos = xbmc.getInfoLabel('Container(%s).Position' % focusId)
     return getGuiListItem(focusId, pos)
 
 def getAllListItems():
     focusId = xbmcgui.Window().getFocusId()
-    numItems = int('0%s' % xbmc.getInfoLabel('Container(%s).NumItems' % focusId).decode('utf-8'))
+    numItems = int('0%s' % xbmc.getInfoLabel('Container(%s).NumItems' % focusId))
     items = []
     for pos in range(1,numItems):
         item = getGuiListItem(focusId, pos)
@@ -111,12 +108,12 @@ def getGuiListItem(focusId, pos):
                'Genre', 'TrackNumber', 'PlotOutline', 'Studio', 'Comment', 'Year', 'Duration', 'Fanart', 'Thumbnail' ]
     position = 'Container(%s).ListitemPosition(%s).' % (focusId, pos)
     # Initial Item Label Values
-    item = {'FolderPath': xbmc.getInfoLabel('Container.FolderPath').decode('utf-8'),
-            'Content': xbmc.getInfoLabel('Container.Content').decode('utf-8'),
+    item = {'FolderPath': xbmc.getInfoLabel('Container.FolderPath'),
+            'Content': xbmc.getInfoLabel('Container.Content'),
             'FocusID': focusId,
             'Position': int('0%s' % pos),
-            'NumItems': int('0%s' % xbmc.getInfoLabel('Container(%s).NumItems' % focusId).decode('utf-8')),
-            'OriLabel': xbmc.getInfoLabel(position + 'Label').decode('utf-8'),
+            'NumItems': int('0%s' % xbmc.getInfoLabel('Container(%s).NumItems' % focusId)),
+            'OriLabel': xbmc.getInfoLabel(position + 'Label'),
             'Compilation': False }
     # Patterns to remove from Colored Labels
     #patterns = [ '\[COLOR \w+\]', '\[\/COLOR\]', '\[\/?B\]', '\[\/?I\]', '\[\/?LIGHT\]',
@@ -127,7 +124,7 @@ def getGuiListItem(focusId, pos):
     coloredLabels = [ 'Label', 'Artist', 'Title', 'Album', 'AlbumArtist' ]
     # Get all Labels
     for label in labels:
-        labelText =  xbmc.getInfoLabel(position + label).decode('utf-8')
+        labelText =  xbmc.getInfoLabel(position + label)
         if label in coloredLabels:
             for resub in resubs:
                 labelText = resub.sub('', labelText)
@@ -184,7 +181,7 @@ def getGuiListItem(focusId, pos):
         intYear = date.today().year
         year = '%s' % intYear
 
-    if (CONST.youtube_addon_id in item.get('FileNameAndPath') or not item.get('Artist')) and item.get('Title').find(' - ') > 0:
+    if (Const.youtube_addon_id in item.get('FileNameAndPath') or not item.get('Artist')) and item.get('Title').find(' - ') > 0:
         # Get artist from title from the Youtube-Addon Label
         artist, title = item.get('Title').split(' - ', 1)
         item.update({'Artist': artist, 'Title': title}) 

@@ -9,10 +9,16 @@ Fuzzy string matching like a boss. It uses `Levenshtein Distance <https://en.wik
 Requirements
 ============
 
--  Python 2.4 or higher
+-  Python 2.7 or higher
 -  difflib
 -  `python-Levenshtein <https://github.com/ztane/python-Levenshtein/>`_ (optional, provides a 4-10x speedup in String
    Matching, though may result in `differing results for certain cases <https://github.com/seatgeek/fuzzywuzzy/issues/128>`_)
+
+For testing
+~~~~~~~~~~~
+-  pycodestyle
+-  hypothesis
+-  pytest
 
 Installation
 ============
@@ -34,13 +40,13 @@ Using PIP via Github
 
 .. code:: bash
 
-    pip install git+git://github.com/seatgeek/fuzzywuzzy.git@0.15.0#egg=fuzzywuzzy
+    pip install git+git://github.com/seatgeek/fuzzywuzzy.git@0.18.0#egg=fuzzywuzzy
 
 Adding to your ``requirements.txt`` file (run ``pip install -r requirements.txt`` afterwards)
 
 .. code:: bash
 
-    git+ssh://git@github.com/seatgeek/fuzzywuzzy.git@0.15.0#egg=fuzzywuzzy
+    git+ssh://git@github.com/seatgeek/fuzzywuzzy.git@0.18.0#egg=fuzzywuzzy
     
 Manually via GIT
 
@@ -127,3 +133,9 @@ FuzzyWuzzy is being ported to other languages too! Here are a few ports we know 
 -  Java: `fuzzywuzzy (java port) <https://github.com/xdrop/fuzzywuzzy>`_
 -  Rust: `fuzzyrusty (Rust port) <https://github.com/logannc/fuzzyrusty>`_
 -  JavaScript: `fuzzball.js (JavaScript port) <https://github.com/nol13/fuzzball.js>`_
+-  C++: `Tmplt/fuzzywuzzy <https://github.com/Tmplt/fuzzywuzzy>`_
+-  C#: `fuzzysharp (.Net port) <https://github.com/BoomTownRoi/BoomTown.FuzzySharp>`_
+-  Go: `go-fuzzywuzz (Go port) <https://github.com/paul-mannino/go-fuzzywuzzy>`_
+-  Free Pascal: `FuzzyWuzzy.pas (Free Pascal port) <https://github.com/DavidMoraisFerreira/FuzzyWuzzy.pas>`_
+-  Kotlin multiplatform: `FuzzyWuzzy-Kotlin <https://github.com/willowtreeapps/fuzzywuzzy-kotlin>`_
+-  R: `fuzzywuzzyR (R port) <https://github.com/mlampros/fuzzywuzzyR>`_

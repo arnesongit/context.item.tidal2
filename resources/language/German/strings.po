@@ -1,0 +1,306 @@
+# XBMC Media Center language file
+# Addon Name: TIDAL2 Search
+# Addon id: context.item.tidal2
+# Addon version: 0.2.0
+# Addon Provider: arneson
+msgid ""
+msgstr ""
+"Project-Id-Version: XBMC-Addons\n"
+"Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
+"POT-Creation-Date: 2021-03-29 18:19+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgctxt "#30001"
+msgid "TIDAL2 Search ..."
+msgstr "TIDAL2 Search ..."
+
+msgctxt "#30003"
+msgid "Export/Import Path"
+msgstr "Export-/Import-Verzeichnis"
+
+msgctxt "#30004"
+msgid "Max. Number of simultaneous search requests"
+msgstr "Max. Anzahl gleichzeitiger Such-Anfragen"
+
+msgctxt "#30011"
+msgid "Globals"
+msgstr "Allgemeines"
+
+msgctxt "#30070"
+msgid "Enable Debug-Logging"
+msgstr "Debug-Logging aktivieren"
+
+msgctxt "#30080"
+msgid "Blacklists"
+msgstr "Blacklists"
+
+msgctxt "#30081"
+msgid "Fuzzy-Level"
+msgstr "Fuzzy-Level"
+
+msgctxt "#30082"
+msgid "Blacklist #1"
+msgstr "Blacklist #1"
+
+msgctxt "#30083"
+msgid "Blacklist #2"
+msgstr "Blacklist #2"
+
+msgctxt "#30084"
+msgid "Blacklist #3"
+msgstr "Blacklist #3"
+
+msgctxt "#30085"
+msgid "Reduce Match-Level for Blacklist Match"
+msgstr "Match-Level-Reduzierung bei Blacklist-Treffer"
+
+msgctxt "#30086"
+msgid "Minimum Match-Level \"Artist\"/\"Album Artist\""
+msgstr "Mindest-Match-Level für \"Künstler\"/\"Album-Künstler\""
+
+msgctxt "#30087"
+msgid "Factors for Fuzzy Search:"
+msgstr "Gewichtungen der Match Level für:"
+
+msgctxt "#30088"
+msgid "Increase Match-Level for Favorite Artists"
+msgstr "Match-Level für Künstler-Favoriten erhöhen"
+
+msgctxt "#30089"
+msgid "Match only in brackets ( ) or [ ]"
+msgstr "Nur in Klammern ( ) oder [ ] suchen"
+
+msgctxt "#30101"
+msgid "Artist"
+msgstr "Künstler"
+
+msgctxt "#30102"
+msgid "Album"
+msgstr "Album"
+
+msgctxt "#30103"
+msgid "Playlist"
+msgstr "Playliste"
+
+msgctxt "#30104"
+msgid "Track"
+msgstr "Titel"
+
+msgctxt "#30105"
+msgid "Video"
+msgstr "Video"
+
+msgctxt "#30106"
+msgid "Artists"
+msgstr "Künstler"
+
+msgctxt "#30107"
+msgid "Albums"
+msgstr "Alben"
+
+msgctxt "#30108"
+msgid "Playlists"
+msgstr "Playlisten"
+
+msgctxt "#30109"
+msgid "Tracks"
+msgstr "Titel"
+
+msgctxt "#30110"
+msgid "Videos"
+msgstr "Videos"
+
+msgctxt "#30400"
+msgid "Search Again"
+msgstr "Erneut suchen"
+
+msgctxt "#30401"
+msgid "Search"
+msgstr "Suchen"
+
+msgctxt "#30402"
+msgid "Album Artist"
+msgstr "Album-Künstler"
+
+msgctxt "#30403"
+msgid "Album Year"
+msgstr "Album-Jahr"
+
+msgctxt "#30404"
+msgid "Please login first !"
+msgstr "Bitte vorher einloggen !"
+
+msgctxt "#30405"
+msgid "Start"
+msgstr "Starten"
+
+msgctxt "#30406"
+msgid "From Position"
+msgstr "Von Position"
+
+msgctxt "#30407"
+msgid "To Position"
+msgstr "Bis Position"
+
+msgctxt "#30408"
+msgid "Generate Playlist"
+msgstr "Playliste anlegen"
+
+msgctxt "#30409"
+msgid "Playlist for {what}"
+msgstr "Playliste für {what}"
+
+msgctxt "#30410"
+msgid "Searching in TIDAL ..."
+msgstr "Suche in TIDAL ..."
+
+msgctxt "#30411"
+msgid "Searching ..."
+msgstr "Suche ..."
+
+msgctxt "#30412"
+msgid "Not Found"
+msgstr "Nicht gefunden"
+
+msgctxt "#30413"
+msgid "{n} of {m} Items found"
+msgstr "{n} von {m} Einträge gefunden"
+
+msgctxt "#30414"
+msgid "Search canceled"
+msgstr "Suche abgebrochen"
+
+msgctxt "#30415"
+msgid "Search aborted by user."
+msgstr "Suche vom Benutzer abgebrochen."
+
+msgctxt "#30416"
+msgid "Insert found Items to the Playlist ?"
+msgstr "Gefundene Einträge in Playliste einfügen ?"
+
+msgctxt "#30417"
+msgid "Finished"
+msgstr "Beendet"
+
+msgctxt "#30418"
+msgid "Inserting Tracks into the Playlist ..."
+msgstr "Füge Einträge in Playliste ein ..."
+
+msgctxt "#30419"
+msgid "Search in TIDAL"
+msgstr "In TIDAL suchen"
+
+msgctxt "#30420"
+msgid "Fuzzy Search"
+msgstr "Fuzzy-Suche"
+
+msgctxt "#30421"
+msgid "Generate Track Playlist"
+msgstr "Playliste mit Titel generieren"
+
+msgctxt "#30422"
+msgid "Generate Video Playlist"
+msgstr "Playliste mit Videos generieren"
+
+msgctxt "#30423"
+msgid "Addon Settings"
+msgstr "Addon Einstellungen"
+
+msgctxt "#30424"
+msgid "ListItem Info"
+msgstr "ListItem Info"
+
+msgctxt "#30425"
+msgid "Authorization problem"
+msgstr "Anmeldefehler !"
+
+msgctxt "#30426"
+msgid "Export Favorite {what} ..."
+msgstr "{what}-Favoriten exportieren ..."
+
+msgctxt "#30427"
+msgid "Import Favorite {what} ..."
+msgstr "{what}-Favoriten importieren ..."
+
+msgctxt "#30428"
+msgid "{n} exported"
+msgstr "{n} exportiert"
+
+msgctxt "#30429"
+msgid "{n} imported"
+msgstr "{n} importiert"
+
+msgctxt "#30430"
+msgid "Delete Favorite {what}"
+msgstr "{what}-Favoriten löschen"
+
+msgctxt "#30431"
+msgid "Remove all {what} from Favorites ?"
+msgstr "Sollen alle {what}-Favoriten gelöscht werden ?"
+
+msgctxt "#30432"
+msgid "Import {what}"
+msgstr "{what} importieren"
+
+msgctxt "#30433"
+msgid "Export User-Playlists"
+msgstr "User-Playlisten exportieren"
+
+msgctxt "#30434"
+msgid "Import User-Playlists ..."
+msgstr "User-Playlisten importieren ..."
+
+msgctxt "#30435"
+msgid "Export User-Playlist"
+msgstr "User-Playliste exportieren"
+
+msgctxt "#30436"
+msgid "Delete all Favorite {what}"
+msgstr "Alle {what}-Favoriten löschen"
+
+msgctxt "#30437"
+msgid "Search for New Music ..."
+msgstr "Suche nach neuer Musik ..."
+
+msgctxt "#30438"
+msgid "Limit for Search Results"
+msgstr "Limit für Such-Ergebnisse"
+
+msgctxt "#30439"
+msgid "Max. age in days"
+msgstr "Max. Alter in Tagen"
+
+msgctxt "#30440"
+msgid "Found new music:"
+msgstr "Neue Musik gefunden:"
+
+msgctxt "#30441"
+msgid "Adding found Items to Playlists ..."
+msgstr "Gefundene Einträge in Playlisten einfügen ..."
+
+msgctxt "#30442"
+msgid "Error while Searching for new Music"
+msgstr "Fehler beim Suchen nach neuer Musik"
+
+msgctxt "#30443"
+msgid "No new music found !"
+msgstr "Keine neue Musik gefunden !"
+
+msgctxt "#30444"
+msgid "Search aborted."
+msgstr "Suche abgebrochen."
+
+msgctxt "#30445"
+msgid "Search Threads are still running."
+msgstr "Die Suche ist noch aktiv."
+
+msgctxt "#30446"
+msgid "Should all Threads be aborted ?"
+msgstr "Soll die Suche abgebrochen werden ?"

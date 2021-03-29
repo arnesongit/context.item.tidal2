@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-import xbmc
-from resources.lib.tidalsearch.config import CONST
+from kodi_six import xbmc
+from resources.lib.tidalsearch.common import Const
 
 #------------------------------------------------------------------------------
 # MAIN
@@ -27,4 +27,4 @@ from resources.lib.tidalsearch.config import CONST
 if __name__ == '__main__':
 
     # Call Popup Menu in Addon
-    xbmc.executebuiltin('RunPlugin(plugin://%s/context_menu)' % CONST.addon_id)
+    xbmc.executebuiltin('RunPlugin(plugin://%s/context_menu)' % Const.addon_id)

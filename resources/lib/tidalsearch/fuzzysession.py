@@ -15,33 +15,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os, re, traceback
-from types import DictionaryType
+#from types import DictionaryType
 
 from threading import Thread, currentThread
-from Queue import Queue
+try:
+    from asyncio import Queue
+except:
+    from Queue import Queue
 from datetime import datetime
 import requests
 
-import xbmc, xbmcplugin, xbmcgui, xbmcvfs
+from kodi_six import xbmc, xbmcplugin, xbmcgui, xbmcvfs, py2_decode
 
 from requests import HTTPError
 
-from koditidal import plugin as tidalPlugin, addon as tidalAddon, _T, _P, VARIOUS_ARTIST_ID
-from koditidal import TidalConfig, TidalSession, TidalUser, TidalFavorites, VideoItem, AlbumItem
-from tidalapi import SubscriptionType, AlbumType
-from tidalapi.models import SearchResult, PlayableMedia
+from tidal2.common import plugin as tidalPlugin, addon as tidalAddon
+from tidal2.textids import  Msg as Msg2, _T, _P
+from tidal2.config import TidalConfig
+from tidal2.koditidal import TidalSession, TidalUser, TidalFavorites, VideoItem, AlbumItem
+from tidal2.tidalapi import SubscriptionType, AlbumType
+from tidal2.tidalapi.models import SearchResult, PlayableMedia, VARIOUS_ARTIST_ID
 
-from debug import DebugHelper
-import config
-from .config import settings, _S
+from .textids import Msg, _S
+from .config import settings, log
 from .fuzzymodels import FuzzyArtistItem, FuzzyAlbumItem, FuzzyTrackItem, FuzzyVideoItem
-
-debug = DebugHelper(pluginName=settings.addon_name,
-                    detailLevel=2 if settings.debug else 1,
-                    enableTidalApiLog= True if tidalAddon.getSetting('debug_log') == 'true' else False)
 
 #------------------------------------------------------------------------------
 # Fuzzy Functions
@@ -66,7 +66,7 @@ class FuzzySession(TidalSession):
             if isinstance(e, HTTPError):
                 r = e.response
                 if r.status_code in [401, 403]:
-                    msg = _T(30210)
+                    msg = _T(Msg2.i30210)
                 else:
                     msg = r.reason
                 try:
@@ -165,7 +165,7 @@ class FuzzySession(TidalSession):
         s_album = self.cleanup_search_text(album)
         s_albumartist = self.cleanup_search_text(albumartist)
         s_year = '%s' % year
-        debug.log('Searching in TDAL: artist="%s", title="%s", album="%s", albumartist="%s", ftartist="%s", year="%s" ...' % (s_artist, s_title, s_album, s_albumartist, s_ftartist, year))
+        log.debug('Searching in TDAL: artist="%s", title="%s", album="%s", albumartist="%s", ftartist="%s", year="%s" ...' % (s_artist, s_title, s_album, s_albumartist, s_ftartist, year))
         result = SearchResult()
         artist_ids = []
         album_ids = []
@@ -275,10 +275,10 @@ class FuzzyFavorites(TidalFavorites):
                 for line in lines:
                     f.write(line.encode('utf-8'))
                 f.close()
-                xbmcgui.Dialog().notification(_P(what), _S(30428).format(n=len(lines)), xbmcgui.NOTIFICATION_INFO)
+                xbmcgui.Dialog().notification(_P(what), _S(Msg.i30428).format(n=len(lines)), xbmcgui.NOTIFICATION_INFO)
                 ok = True
         except Exception as e:
-            debug.logException(e)
+            log.logException(e)
         return ok
 
     def import_ids(self, what, filename, action):
@@ -292,28 +292,28 @@ class FuzzyFavorites(TidalFavorites):
             if len(ids) > 0:
                 ok = action(ids)
                 if ok:
-                    xbmcgui.Dialog().notification(_P(what), _S(30429).format(n=len(ids)), xbmcgui.NOTIFICATION_INFO)
+                    xbmcgui.Dialog().notification(_P(what), _S(Msg.i30429).format(n=len(ids)), xbmcgui.NOTIFICATION_INFO)
         except Exception as e:
-            debug.logException(e)
+            log.logException(e)
         return ok
 
     def delete_all(self, what, action, remove):
         try:
             ok = False
             progress = xbmcgui.DialogProgress()
-            progress.create(_S(30430).format(what=_P(what)))
+            progress.create(_S(Msg.i30430).format(what=_P(what)))
             idx = 0
             items = action()
             for item in items:
                 if progress.iscanceled():
                     break
                 idx = idx + 1
-                percent = (idx * 100) / len(items) 
+                percent = int((idx * 100) / len(items)) 
                 progress.update(percent, item.getLabel(extended=False))
                 remove(item.id)
             ok = not progress.iscanceled()
         except Exception as e:
-            debug.logException(e)
+            log.logException(e)
         finally:
             progress.close()
         return ok
@@ -333,29 +333,29 @@ class FuzzyUser(TidalUser):
         fd = xbmcvfs.File(full_path, 'w')
         numItems = 0
         progress = xbmcgui.DialogProgress()
-        progress.create(_S(30433))
+        progress.create(_S(Msg.i30433))
         idx = 0
         for playlist in playlists:
             idx = idx + 1
-            percent = (idx * 100) / len(playlists) 
+            percent = int((idx * 100) / len(playlists)) 
             progress.update(percent, playlist.getLabel(extended=False))
             items = self._session.get_playlist_items(playlist=playlist)
             items = [item for item in items if item.available]
             if len(items) > 0:
-                numItems += playlist.numberOfItems
-                fd.write(repr({ 'uuid': playlist.id,
-                                'title': playlist.title,
-                                'description': playlist.description,
-                                'ids': [item.id for item in items]  }) + b'\n')
+                numItems = numItems + playlist.numberOfItems
+                fd.write(repr({'uuid': playlist.id,
+                               'title': playlist.title,
+                               'description': playlist.description,
+                               'ids': [item.id for item in items]}) + '\n')
         fd.close()
         progress.close()
-        xbmcgui.Dialog().notification(_P('Playlists'), _S(30428).format(n=numItems), xbmcgui.NOTIFICATION_INFO)
+        xbmcgui.Dialog().notification(_P('Playlists'), _S(Msg.i30428).format(n=numItems), xbmcgui.NOTIFICATION_INFO)
 
     def import_playlists(self, filename):
         try:
             ok = False
             f = xbmcvfs.File(filename, 'r')
-            lines = f.read().decode('utf-8').split('\n')
+            lines = f.read().split('\n')
             f.close()
             playlists = []
             names = []
@@ -363,14 +363,13 @@ class FuzzyUser(TidalUser):
                 try:
                     if len(line) > 0:
                         item = eval(line)
-                        if isinstance(item, DictionaryType):
-                            playlists.append(item)
-                            names.append(item.get('title'))
+                        names.append(item.get('title'))
+                        playlists.append(item)
                 except:
                     pass
             if len(names) < 1:
                 return False
-            selected = xbmcgui.Dialog().select(_S(30432).format(what=_T('Playlist')), names)
+            selected = xbmcgui.Dialog().select(_S(Msg.i30432).format(what=_T('Playlist')), names)
             if selected < 0:
                 return False
             item = playlists[selected]
@@ -380,17 +379,17 @@ class FuzzyUser(TidalUser):
                 if bItem not in item_ids:
                     item_ids.append(bItem)
             dialog = xbmcgui.Dialog()
-            title = dialog.input(_T(30233), item.get('title'), type=xbmcgui.INPUT_ALPHANUM)
+            title = dialog.input(_T(Msg2.i30233), item.get('title'), type=xbmcgui.INPUT_ALPHANUM)
             if not title:
                 return False
-            description = dialog.input(_T(30234), item.get('description'), type=xbmcgui.INPUT_ALPHANUM)
+            description = dialog.input(_T(Msg2.i30234), item.get('description'), type=xbmcgui.INPUT_ALPHANUM)
             playlist = self.create_playlist(title, description)
             if playlist:
                 ok = self.add_playlist_entries(playlist=playlist, item_ids=item_ids)
                 if ok:
-                    xbmcgui.Dialog().notification(_T('Playlist'), _S(30429).format(n=playlist.title), xbmcgui.NOTIFICATION_INFO)
+                    xbmcgui.Dialog().notification(_T('Playlist'), _S(Msg.i30429).format(n=playlist.title), xbmcgui.NOTIFICATION_INFO)
         except Exception as e:
-            debug.logException(e)
+            log.logException(e)
         return ok
 
     def add_playlist_entries(self, playlist=None, item_ids=[]):
@@ -400,7 +399,7 @@ class FuzzyUser(TidalUser):
         except:
             try:
                 progress = xbmcgui.DialogProgress()
-                progress.create(_S(30434))
+                progress.create(_S(Msg.i30434))
                 valid_ids = []
                 idx = 0
                 notFound = 0
@@ -418,15 +417,15 @@ class FuzzyUser(TidalUser):
                         except:
                             pass
                     idx = idx + 1
-                    percent = (idx * 100) / len(item_ids)
+                    percent = int((idx * 100) / len(item_ids))
                     if validItem:
                         line1 = validItem.getLabel(extended=False)
                         valid_ids.append(item_id)
                     else:
-                        line1 = '%s: %s' % (item_id, _S(30412))
+                        line1 = '%s: %s' % (item_id, _S(Msg.i30412))
                         notFound = notFound + 1
-                    line3 = '%s: %s' % (_S(30412), notFound)
-                    progress.update(percent, line1=line1, line2=_S(30413).format(n=len(valid_ids), m=len(item_ids)), line3=line3)
+                    line3 = '%s: %s' % (_S(Msg.i30412), notFound)
+                    progress.update(percent, line1=line1, line2=_S(Msg.i30413).format(n=len(valid_ids), m=len(item_ids)), line3=line3)
                 if len(valid_ids) > 0 and not progress.iscanceled():
                     ok = TidalUser.add_playlist_entries(self, playlist=playlist, item_ids=valid_ids)
             except:
@@ -456,7 +455,7 @@ class NewMusicSearcher(object):
 
     def progress_update(self, heading):
         try:
-            self.progress.update(percent=((self.artistCount - self.artistQueue.qsize()) * 100) / self.artistCount,
+            self.progress.update(percent=int(((self.artistCount - self.artistQueue.qsize()) * 100) / self.artistCount),
                                  heading=heading,
                                  message='%s:%s, %s:%s, %s:%s (Threads:%s)' % (_P('albums'), len(self.found_albums),
                                                                                _P('tracks'), len(self.found_tracks),
@@ -467,7 +466,7 @@ class NewMusicSearcher(object):
 
     def search_thread(self):
         try:
-            debug.log('Search Thread %s started.' % currentThread().ident)
+            log.debug('Search Thread %s started.' % currentThread().ident)
             while not xbmc.Monitor().waitForAbort(timeout=0.01) and not self.abortThreads:
                 try:
                     artist = self.artistQueue.get_nowait()
@@ -483,11 +482,15 @@ class NewMusicSearcher(object):
                         items += self.session.get_artist_videos(artist.id, limit=self.searchLimit)
                     for item in items:
                         if self.abortThreads: break
-                        diff = datetime.today() - item.releaseDate
-                        if not item._userplaylists and diff.days < self.diffDays:
+                        try:
+                            diff = datetime.today() - item.releaseDate
+                            diff_days = diff.days
+                        except:
+                            diff_days = 1
+                        if not item._userplaylists and diff_days < self.diffDays:
                             if isinstance(item, VideoItem):
                                 if not '%s' % item.id in self.found_videos:
-                                    debug.log('Found new Video: %s' % item.getLabel(extended=False))
+                                    log.debug('Found new Video: %s' % item.getLabel(extended=False))
                                     self.found_videos.append('%s' % item.id)
                             elif isinstance(item, AlbumItem):
                                 tracks = self.session.get_album_items(item.id)
@@ -496,14 +499,14 @@ class NewMusicSearcher(object):
                                         # Use first Track in an Album as PlaylistItem
                                         if item.type == AlbumType.album or item.type == AlbumType.ep:
                                             if not '%s' % track.id in self.found_albums:
-                                                debug.log('Found new Album: %s' % item.getLabel(extended=False))
+                                                log.debug('Found new Album: %s' % item.getLabel(extended=False))
                                                 self.found_albums.append('%s' % track.id)
                                         elif not track._userplaylists:
                                             if not '%s' % track.id in self.found_tracks:
-                                                debug.log('Found new Track: %s' % item.getLabel(extended=False))
+                                                log.debug('Found new Track: %s' % item.getLabel(extended=False))
                                                 self.found_tracks.append('%s' % track.id)
                                         break
-                    self.progress_update(heading='%s: %s' % (_T('artist'), artist.name))
+                        self.progress_update(heading='%s: %s' % (_T('artist'), artist.name))
                     pass
                 except requests.HTTPError as e:
                     r = e.response
@@ -516,13 +519,13 @@ class NewMusicSearcher(object):
                     #debug.log('Error getting Album ID %s' % album_id, xbmc.LOGERROR)
                     if r.status_code == 429 and not self.abortThreads:
                         self.abortThreads = True
-                        debug.log('Too many requests. Aborting Workers ...', xbmc.LOGERROR)
+                        log.error('Too many requests. Aborting Workers ...')
                         self.albumQueue._init(9999)
-                        xbmcgui.Dialog().notification(_S(30437), msg, xbmcgui.NOTIFICATION_ERROR)
+                        xbmcgui.Dialog().notification(_S(Msg.i30437), msg, xbmcgui.NOTIFICATION_ERROR)
         except Exception as e:
             traceback.print_exc()
         self.runningThreads.pop(currentThread().ident, None)
-        debug.log('Search Thread %s terminated.' % currentThread().ident)
+        log.debug('Search Thread %s terminated.' % currentThread().ident)
         return
 
     def search(self, artists, thread_count=1):
@@ -535,16 +538,16 @@ class NewMusicSearcher(object):
                     self.artistQueue.put(artist)
         self.artistCount = self.artistQueue.qsize()
         if self.artistCount < 1:
-            debug.log('No Artist to search ...')
+            log.debug('No Artist to search ...')
             return
-        debug.log('Start: Searching new Music for %s Artists ...' % self.artistCount)
+        log.debug('Start: Searching new Music for %s Artists ...' % self.artistCount)
         self.abortThreads = False
         threadsToStart = thread_count if thread_count < self.artistCount else self.artistCount
         self.runningThreads = {}
         self.progress = xbmcgui.DialogProgressBG()
-        self.progress.create(heading=_S(30437))
+        self.progress.create(heading=_S(Msg.i30437))
         try:
-            self.progress_update(heading=_S(30437))
+            self.progress_update(heading=_S(Msg.i30437))
             xbmc.sleep(500)
             while len(self.runningThreads.keys()) < threadsToStart:
                 try:
@@ -552,8 +555,8 @@ class NewMusicSearcher(object):
                     worker.start()
                     self.runningThreads.update({worker.ident: worker})
                 except Exception as e:
-                    debug.log(str(e), xbmc.LOGERROR)
-            debug.log('Waiting until all Threads are terminated')
+                    log.logException(e)
+            log.debug('Waiting until all Threads are terminated')
             startTime = datetime.today()
             stopWatch = startTime
             remainingArtists = self.artistCount
@@ -561,15 +564,15 @@ class NewMusicSearcher(object):
             while len(self.runningThreads.keys()) > 0 and not xbmc.Monitor().waitForAbort(timeout=0.01):
                 for worker in self.runningThreads.values():
                     worker.join(5)
-                    if config.getSetting('search_artist_music_abort') == 'true':
-                        debug.log('Stopping all Workers ...')
+                    if settings.getSetting('search_artist_music_abort') == 'true':
+                        log.debug('Stopping all Workers ...')
                         self.abortThreads = True
-                        config.setSetting('search_artist_music_abort', 'false')
+                        settings.setSetting('search_artist_music_abort', 'false')
                     if worker.isAlive():
                         now = datetime.today()
                         runningTime = now - startTime
                         remainingArtists = self.artistQueue.qsize()
-                        debug.log('Workers still running after %s seconds, %s Artists remaining ...' % (runningTime.seconds, remainingArtists))
+                        log.debug('Workers still running after %s seconds, %s Artists remaining ...' % (runningTime.seconds, remainingArtists))
                         diff = now - stopWatch
                         if lastCount > remainingArtists:
                             # Workers are still removing artists from the queue
@@ -577,21 +580,21 @@ class NewMusicSearcher(object):
                             stopWatch = now
                         elif diff.seconds >= 60:
                             # Timeout: Stopping Threads with the Stop-Flag
-                            debug.log('Timeout, sending Stop to Workers ...')
+                            log.debug('Timeout, sending Stop to Workers ...')
                             self.abortThreads = True
                             break
                     else:
                         # Removing terminates Thread
                         self.runningThreads.pop(worker.ident, None)
                 if self.abortThreads:
-                    xbmcgui.Dialog().notification(_S(30437), _S(30444), icon=xbmcgui.NOTIFICATION_WARNING)
+                    xbmcgui.Dialog().notification(_S(Msg.i30437), _S(Msg.i30444), icon=xbmcgui.NOTIFICATION_WARNING)
                     for worker in self.runningThreads.values():
-                        debug.log('Waiting for Thread %s to terminate ...' % worker.ident)
+                        log.debug('Waiting for Thread %s to terminate ...' % worker.ident)
                         worker.join(5)
                         self.runningThreads.pop(worker.ident, None)
                     xbmc.sleep(2000)
             if len(self.found_albums) > 0 or len(self.found_tracks) > 0 or len(self.found_videos) > 0:
-                self.progress_update(heading=_S(30441))
+                self.progress_update(heading=_S(Msg.i30441))
                 if len(self.found_albums) > 0 and self.album_playlist.id:
                     self.album_playlist._etag = None
                     try:
@@ -613,17 +616,17 @@ class NewMusicSearcher(object):
                 message = '%s:%s, %s:%s, %s:%s' % (_P('albums'), len(self.found_albums),
                                                    _P('tracks'), len(self.found_tracks),
                                                    _P('videos'), len(self.found_videos))
-                xbmcgui.Dialog().notification(_S(30440), message, icon=xbmcgui.NOTIFICATION_INFO)
-                debug.log('Found: %s' % message)
+                xbmcgui.Dialog().notification(_S(Msg.i30440), message, icon=xbmcgui.NOTIFICATION_INFO)
+                log.debug('Found: %s' % message)
             else:
-                debug.log('No new Music found !')
-                xbmcgui.Dialog().notification(_S(30437), _S(30443), icon=xbmcgui.NOTIFICATION_INFO)
+                log.debug('No new Music found !')
+                xbmcgui.Dialog().notification(_S(Msg.i30437), _S(Msg.i30443), icon=xbmcgui.NOTIFICATION_INFO)
         except Exception as e:
-            debug.log(str(e), xbmc.LOGERROR)
-            xbmcgui.Dialog().notification(_S(30437), _S(30442), icon=xbmcgui.NOTIFICATION_ERROR)
+            log.logException(e)
+            xbmcgui.Dialog().notification(_S(Msg.i30437), _S(Msg.i30442), icon=xbmcgui.NOTIFICATION_ERROR)
         finally:
             xbmc.sleep(2000)
             self.progress.close()
-        debug.log('End: Searching for new Music.')
+        log.debug('End: Searching for new Music.')
 
 # End of File

@@ -1,4 +1,6 @@
+__pycache__/
 *.py[cod]
+*$py.class
 
 # C extensions
 *.so
@@ -44,8 +46,10 @@ docs/_build
 .DS_Store
 *.pxm
 
+# Windows
+Thumbs.db
+
 # Eclipse-Settings
-.externalTool*
 .settings
+.externalTool*
 *.prefs
-*strings.po

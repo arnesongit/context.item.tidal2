@@ -15,11 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import re
 
-from koditidal import ArtistItem, AlbumItem, TrackItem, VideoItem
+from tidal2.koditidal import ArtistItem, AlbumItem, TrackItem, VideoItem
 
 from .config import settings
 from .fuzzywuzzy import fuzz

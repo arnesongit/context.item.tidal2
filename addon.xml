@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="context.item.tidal2" name="TIDAL2 Search" version="0.1.15" provider-name="arneson">
+<addon id="context.item.tidal2" name="TIDAL2 Search" version="0.2.0" provider-name="arneson">
   <requires>
     <import addon="xbmc.python" version="2.20.0"/>
-    <import addon="script.module.requests" version="2.3.0"/>
-    <import addon="script.module.routing" version="0.1.0"/>
-    <import addon="script.module.unidecode" version="0.4.16"/>
-    <import addon="plugin.audio.tidal2" version="2.0.0-beta21"/>
+    <import addon="script.module.requests"/>
+    <import addon="script.module.routing"/>
+    <import addon="script.module.kodi-six"/>
+    <import addon="plugin.audio.tidal2" version="2.0.1-beta1"/>
   </requires>
   <extension point="kodi.context.item" library="context.py">
     <item>
@@ -17,18 +17,20 @@
   <extension point="xbmc.python.module" library="resources/lib"/>
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
-    <summary lang="en">Context menu to search TIDAL content.</summary>
-    <summary lang="de">Kontext-Menü für TIDAL-Suche.</summary>
-    <description lang="en">Needs TIDAL2 Addon installed and activated.</description>
-    <description lang="de">Benötigt das Addon TIDAL2.</description>
-    <disclaimer lang="en">This is an unofficial client and is not supported nor endorsed by TIDAL.</disclaimer>
-    <disclaimer lang="de">Dies ist eine inoffizieller Client, der von TIDAL nicht unterstützt wird.</disclaimer>
+    <language>de en</language>
+    <summary lang="en_GB">Context menu to search TIDAL content.</summary>
+    <summary lang="de_DE">Kontext-Menü für TIDAL-Suche.</summary>
+    <description lang="en_GB">Needs TIDAL2 Addon installed and activated.</description>
+    <description lang="de_DE">Benötigt das Addon TIDAL2.</description>
+    <disclaimer lang="en_GB">This is an unofficial client and is not supported nor endorsed by TIDAL.</disclaimer>
+    <disclaimer lang="de_DE">Dies ist eine inoffizieller Client, der von TIDAL nicht unterstützt wird.</disclaimer>
     <license>GNU GENERAL PUBLIC LICENSE. Version 3, 29 June 2007</license>
     <forum></forum>
     <source>https://github.com/arnesongit/context.item.tidal2</source>
     <news>
-v0.1.15 (2021-03-17)
-- First modifications for Python3 compatibility
+v0.2.0 (2021-03-27)
+- First version for Kodi 19 (with Kodi 18 compatibility)
+- Updates fuzzywuzzy library version to v0.18.0
     </news>
     <assets>
       <icon>resources/icon.png</icon>
