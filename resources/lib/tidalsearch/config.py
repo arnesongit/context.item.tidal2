@@ -26,8 +26,8 @@ from .common import addon
 
 class Config(object):
 
-    def __init__(self, addon):
-        self.load(addon)
+    def __init__(self):
+        self.load()
 
     def getSetting(self, setting):
         return addon.getSetting(setting)
@@ -38,12 +38,12 @@ class Config(object):
     def getAddonInfo(self, val):
         return addon.getAddonInfo(val)
 
-    def load(self, addon):
+    def load(self):
 
         self.import_export_path = self.getSetting('import_export_path')
 
         self.max_thread_count = max(1, int('0%s' % self.getSetting('max_thread_count')))
-        self.debug = True if addon.getSetting('debug_log') == 'true' else False
+        self.debug = True if self.getSetting('debug_log') == 'true' else False
 
         # Blacklist Settings
         self.blacklist1 = self.getSetting('blacklist1').split()
@@ -69,10 +69,9 @@ class Config(object):
 # Configuration
 #------------------------------------------------------------------------------
 
-settings = Config(addon)
+settings = Config()
 
-log = DebugHelper(enableDebugLog = True if addon.getSetting('debug_log') == 'true' else False,
-                  enableInfoLog = True if addon.getSetting('debug_log') == 'true' else False)
+log = DebugHelper(enableDebugLog=settings.debug, enableInfoLog=settings.debug)
 
 
 # End of File

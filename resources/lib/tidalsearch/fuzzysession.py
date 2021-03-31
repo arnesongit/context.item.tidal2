@@ -24,6 +24,7 @@ from threading import Thread, currentThread
 try:
     from asyncio import Queue
 except:
+    # Python 2.7
     from Queue import Queue
 from datetime import datetime
 import requests
