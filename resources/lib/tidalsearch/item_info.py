@@ -80,7 +80,7 @@ def itemInfoDialog():
              'Type= \"%s\" %s' % (item.get('Type'), ','.join(tidalIds)),
              )
     for line in lines:
-        log.debug(line)
+        log.info(line)
     showDialog(lines)
 
 #------------------------------------------------------------------------------

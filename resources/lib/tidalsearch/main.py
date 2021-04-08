@@ -23,7 +23,7 @@ from datetime import datetime
 from kodi_six import xbmc, xbmcgui, xbmcvfs, py2_decode
 from requests import HTTPError
 
-from tidal2.common import __addon_id__ as _tidal2_addon_id_, PY2
+from tidal2.common import __addon_id__ as _tidal2_addon_id_
 from tidal2.textids import _T, _P
 from tidal2.config import settings as tidalSettings
 from tidal2.koditidal import PlaylistItem
@@ -35,10 +35,13 @@ from .config import settings, log
 from .fuzzysession import FuzzySession, NewMusicSearcher
 from . import item_info
 
-if PY2:
-    from urllib import quote_plus, unquote_plus
-else:
+try:
+    # Python 3
     from urllib.parse import quote_plus, unquote_plus
+except:
+    # Python 2.7
+    from urllib import quote_plus, unquote_plus
+
 
 #------------------------------------------------------------------------------
 # Initialization
@@ -294,13 +297,13 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
         line1 = '%s: %s' % (_T('artist'), artist)
         line2 = '%s: %s' % (_T('track'), title)
         progress.update(percent, line1, line2, line3)
-        log.debug('Searching Title: %s - %s' % (artist, title))
+        log.info('Searching Title: %s - %s' % (artist, title))
         item_id = li.get('video_id', None) if item_type.startswith('video') else li.get('track_id', None)
         if item_id:
             track = session.get_track(item_id, withAlbum=True)
             if track:
                 line3 = 'TIDAL-ID %s: %s - %s (%s)' % (track.id, track.artist.name, track.title, track.year)
-                log.debug('Found TIDAL Track-Id %s: %s - %s' % (track.id, track.artist.name, track.title))
+                log.info('Found TIDAL Track-Id %s: %s - %s' % (track.id, track.artist.name, track.title))
                 items.append(track)
                 pos = pos + 1
                 continue
@@ -311,7 +314,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
             # Take the first result (best matchLevel) 
             track = result.tracks[0]
             line3 = 'ID %s: %s - %s (%s)' % (track.id, track.artist.name, track.title, track.year)
-            log.debug('Found Title Id %s: %s - %s' % (track.id, track.artist.name, track.title))
+            log.info('Found Title Id %s: %s - %s' % (track.id, track.artist.name, track.title))
             items.append(track)
         elif item_type.startswith('video') and len(result.videos) > 0:
             # Sort over matchLevel
@@ -319,10 +322,10 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
             # Take the first result (best matchLevel) 
             video = result.videos[0]
             line3 = 'ID %s: %s - %s (%s)' % (video.id, video.artist.name, video.title, video.year)
-            log.debug('Found Video Id %s: %s - %s' % (video.id, video.artist.name, video.title))
+            log.info('Found Video Id %s: %s - %s' % (video.id, video.artist.name, video.title))
             items.append(video)
         else:
-            log.debug('Title not found.')
+            log.info('Title not found.')
             line3 = '%s: %s - %s' % (_S(Msg.i30412), li.get('Artist'), li.get('Title'))
         pos = pos + 1
 
@@ -334,7 +337,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
         yes = xbmcgui.Dialog().yesno(_S(Msg.i30414), _S(Msg.i30415), line2, _S(Msg.i30416))
         if not yes:
             progress.close()
-            log.debug('Search aborted by user.')
+            log.info('Search aborted by user.')
             return False
     if playlist and foundItems > 0:
         progress.update(99, _S(Msg.i30417), line2, _S(Msg.i30418))
@@ -343,7 +346,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
     xbmc.sleep(1000)
     progress.close()
 
-    log.debug('Search terminated successfully.')
+    log.info('Search terminated successfully.')
     return True
 
 
@@ -354,7 +357,7 @@ def user_playlist_add_id(playlist_id, item_id):
         if playlist:
             session.user.add_playlist_entries(playlist=playlist, item_ids=['%s' % item_id])
             numItems = playlist.numberOfItems + 1
-            log.debug('Added ID %s to Playlist %s at position %s' % (item_id, playlist.title, numItems))
+            log.info('Added ID %s to Playlist %s at position %s' % (item_id, playlist.title, numItems))
     except Exception as e:
         log.logException(e, 'Failed to add ID %s to playlist %s' % (item_id, playlist_id))
         traceback.print_exc()
@@ -650,3 +653,5 @@ def run():
             pass
         xbmcgui.Dialog().notification('%s Error %s' % (plugin.name, r.status_code), msg, xbmcgui.NOTIFICATION_ERROR)
         traceback.print_exc()
+    finally:
+        log.killDebugThreads()

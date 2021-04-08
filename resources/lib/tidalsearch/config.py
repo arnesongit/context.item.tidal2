@@ -18,7 +18,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from tidal2.debug import DebugHelper
-from .common import addon
+from .common import addon, Const
 
 #------------------------------------------------------------------------------
 # Configuration Class
@@ -71,7 +71,7 @@ class Config(object):
 
 settings = Config()
 
-log = DebugHelper(enableDebugLog=settings.debug, enableInfoLog=settings.debug)
+log = DebugHelper(pluginName=Const.addon_name, enableDebugLog=settings.debug, enableInfoLog=settings.debug)
 
 
 # End of File

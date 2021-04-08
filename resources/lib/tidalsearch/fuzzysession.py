@@ -22,14 +22,15 @@ import os, re, traceback
 
 from threading import Thread, currentThread
 try:
-    from asyncio import Queue
+    # Python 3
+    from queue import Queue as _Queue
 except:
     # Python 2.7
-    from Queue import Queue
+    from Queue import Queue as _Queue
 from datetime import datetime
 import requests
 
-from kodi_six import xbmc, xbmcplugin, xbmcgui, xbmcvfs, py2_decode
+from kodi_six import xbmc, xbmcplugin, xbmcgui, xbmcvfs
 
 from requests import HTTPError
 
@@ -150,8 +151,11 @@ class FuzzySession(TidalSession):
         # p = re.compile('\(?f(ea)?t\.?\s*\w+[\s\w&]+\)?', re.IGNORECASE)
         p = re.compile('\(?f(ea)?t\.?\s*\S+[\s\S&]+\)?', re.IGNORECASE)
         txt = p.sub('', txt)
-        # Remove text with brackets
+        # Remove Explicit text
         txt = re.sub('\(Explicit\)', '', txt)
+        # Remove Video resolution tags like (1080i) or (720p)
+        txt = re.sub('\(\d{3,4}[p|i|P|I]\)', '', txt)
+        # Remove text with brackets
         #txt = re.sub('\[.*\]', '', txt)
         #txt = re.sub('\(.*\)', '', txt)
         txt = txt.replace("whos", "who's")
@@ -166,7 +170,7 @@ class FuzzySession(TidalSession):
         s_album = self.cleanup_search_text(album)
         s_albumartist = self.cleanup_search_text(albumartist)
         s_year = '%s' % year
-        log.debug('Searching in TDAL: artist="%s", title="%s", album="%s", albumartist="%s", ftartist="%s", year="%s" ...' % (s_artist, s_title, s_album, s_albumartist, s_ftartist, year))
+        log.info('Searching in TDAL: artist="%s", title="%s", album="%s", albumartist="%s", ftartist="%s", year="%s" ...' % (s_artist, s_title, s_album, s_albumartist, s_ftartist, year))
         result = SearchResult()
         artist_ids = []
         album_ids = []
@@ -446,7 +450,7 @@ class NewMusicSearcher(object):
         self.found_albums = []
         self.found_tracks = []
         self.found_videos = []
-        self.artistQueue = Queue(maxsize=99999)
+        self.artistQueue = _Queue(maxsize=99999)
         self.artistCount = 0
         self.searchLimit = limit
         self.diffDays = diffDays
@@ -467,7 +471,7 @@ class NewMusicSearcher(object):
 
     def search_thread(self):
         try:
-            log.debug('Search Thread %s started.' % currentThread().ident)
+            log.info('Search Thread %s started.' % currentThread().ident)
             while not xbmc.Monitor().waitForAbort(timeout=0.01) and not self.abortThreads:
                 try:
                     artist = self.artistQueue.get_nowait()
@@ -491,7 +495,7 @@ class NewMusicSearcher(object):
                         if not item._userplaylists and diff_days < self.diffDays:
                             if isinstance(item, VideoItem):
                                 if not '%s' % item.id in self.found_videos:
-                                    log.debug('Found new Video: %s' % item.getLabel(extended=False))
+                                    log.info('Found new Video: %s' % item.getLabel(extended=False))
                                     self.found_videos.append('%s' % item.id)
                             elif isinstance(item, AlbumItem):
                                 tracks = self.session.get_album_items(item.id)
@@ -500,11 +504,11 @@ class NewMusicSearcher(object):
                                         # Use first Track in an Album as PlaylistItem
                                         if item.type == AlbumType.album or item.type == AlbumType.ep:
                                             if not '%s' % track.id in self.found_albums:
-                                                log.debug('Found new Album: %s' % item.getLabel(extended=False))
+                                                log.info('Found new Album: %s' % item.getLabel(extended=False))
                                                 self.found_albums.append('%s' % track.id)
                                         elif not track._userplaylists:
                                             if not '%s' % track.id in self.found_tracks:
-                                                log.debug('Found new Track: %s' % item.getLabel(extended=False))
+                                                log.info('Found new Track: %s' % item.getLabel(extended=False))
                                                 self.found_tracks.append('%s' % track.id)
                                         break
                         self.progress_update(heading='%s: %s' % (_T('artist'), artist.name))
@@ -524,9 +528,10 @@ class NewMusicSearcher(object):
                         self.albumQueue._init(9999)
                         xbmcgui.Dialog().notification(_S(Msg.i30437), msg, xbmcgui.NOTIFICATION_ERROR)
         except Exception as e:
+            log.logException(e, 'Error in Search Thread')
             traceback.print_exc()
         self.runningThreads.pop(currentThread().ident, None)
-        log.debug('Search Thread %s terminated.' % currentThread().ident)
+        log.info('Search Thread %s terminated.' % currentThread().ident)
         return
 
     def search(self, artists, thread_count=1):
@@ -539,9 +544,9 @@ class NewMusicSearcher(object):
                     self.artistQueue.put(artist)
         self.artistCount = self.artistQueue.qsize()
         if self.artistCount < 1:
-            log.debug('No Artist to search ...')
+            log.info('No Artist to search ...')
             return
-        log.debug('Start: Searching new Music for %s Artists ...' % self.artistCount)
+        log.info('Start: Searching new Music for %s Artists ...' % self.artistCount)
         self.abortThreads = False
         threadsToStart = thread_count if thread_count < self.artistCount else self.artistCount
         self.runningThreads = {}
@@ -557,23 +562,24 @@ class NewMusicSearcher(object):
                     self.runningThreads.update({worker.ident: worker})
                 except Exception as e:
                     log.logException(e)
-            log.debug('Waiting until all Threads are terminated')
+            log.info('Waiting until all Threads are terminated')
             startTime = datetime.today()
             stopWatch = startTime
             remainingArtists = self.artistCount
             lastCount = self.artistCount
-            while len(self.runningThreads.keys()) > 0 and not xbmc.Monitor().waitForAbort(timeout=0.01):
-                for worker in self.runningThreads.values():
+            while len(list(self.runningThreads.keys())) > 0 and not xbmc.Monitor().waitForAbort(timeout=0.05):
+                remaining_workers = list(self.runningThreads.values())
+                for worker in remaining_workers:
                     worker.join(5)
                     if settings.getSetting('search_artist_music_abort') == 'true':
-                        log.debug('Stopping all Workers ...')
+                        log.info('Stopping all Workers ...')
                         self.abortThreads = True
                         settings.setSetting('search_artist_music_abort', 'false')
-                    if worker.isAlive():
+                    if worker.is_alive():
                         now = datetime.today()
                         runningTime = now - startTime
                         remainingArtists = self.artistQueue.qsize()
-                        log.debug('Workers still running after %s seconds, %s Artists remaining ...' % (runningTime.seconds, remainingArtists))
+                        log.info('Workers still running after %s seconds, %s Artists remaining ...' % (runningTime.seconds, remainingArtists))
                         diff = now - stopWatch
                         if lastCount > remainingArtists:
                             # Workers are still removing artists from the queue
@@ -581,18 +587,21 @@ class NewMusicSearcher(object):
                             stopWatch = now
                         elif diff.seconds >= 60:
                             # Timeout: Stopping Threads with the Stop-Flag
-                            log.debug('Timeout, sending Stop to Workers ...')
+                            log.info('Timeout, sending Stop to Workers ...')
                             self.abortThreads = True
                             break
                     else:
                         # Removing terminates Thread
                         self.runningThreads.pop(worker.ident, None)
+                        break
                 if self.abortThreads:
                     xbmcgui.Dialog().notification(_S(Msg.i30437), _S(Msg.i30444), icon=xbmcgui.NOTIFICATION_WARNING)
-                    for worker in self.runningThreads.values():
-                        log.debug('Waiting for Thread %s to terminate ...' % worker.ident)
-                        worker.join(5)
-                        self.runningThreads.pop(worker.ident, None)
+                    worker_keys = list(self.runningThreads.keys())
+                    for worker_key in worker_keys:
+                        log.info('Waiting for Thread %s to terminate ...' % worker_key)
+                        worker = self.runningThreads.pop(worker_key, None)
+                        if worker != None and worker.is_alive():
+                            worker.join(5)
                     xbmc.sleep(2000)
             if len(self.found_albums) > 0 or len(self.found_tracks) > 0 or len(self.found_videos) > 0:
                 self.progress_update(heading=_S(Msg.i30441))
@@ -618,16 +627,17 @@ class NewMusicSearcher(object):
                                                    _P('tracks'), len(self.found_tracks),
                                                    _P('videos'), len(self.found_videos))
                 xbmcgui.Dialog().notification(_S(Msg.i30440), message, icon=xbmcgui.NOTIFICATION_INFO)
-                log.debug('Found: %s' % message)
+                log.info('Found: %s' % message)
             else:
-                log.debug('No new Music found !')
+                log.info('No new Music found !')
                 xbmcgui.Dialog().notification(_S(Msg.i30437), _S(Msg.i30443), icon=xbmcgui.NOTIFICATION_INFO)
         except Exception as e:
-            log.logException(e)
+            log.logException(e, 'Error in search loop')
             xbmcgui.Dialog().notification(_S(Msg.i30437), _S(Msg.i30442), icon=xbmcgui.NOTIFICATION_ERROR)
+            traceback.print_exc()
         finally:
             xbmc.sleep(2000)
             self.progress.close()
-        log.debug('End: Searching for new Music.')
+        log.info('End: Searching for new Music.')
 
 # End of File
