@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Arne Svenson
+# Copyright (C) 2016-2021 arneson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,8 +17,9 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, re, traceback
-#from types import DictionaryType
+import os
+import re
+import traceback
 
 from threading import Thread, currentThread
 try:
@@ -36,9 +37,9 @@ from requests import HTTPError
 
 from tidal2.common import plugin as tidalPlugin, addon as tidalAddon
 from tidal2.textids import  Msg as Msg2, _T, _P
-from tidal2.config import TidalConfig
+from tidal2.config import settings as tidalSettings
 from tidal2.koditidal import TidalSession, TidalUser, TidalFavorites, VideoItem, AlbumItem
-from tidal2.tidalapi import SubscriptionType, AlbumType
+from tidal2.tidalapi import AlbumType
 from tidal2.tidalapi.models import SearchResult, PlayableMedia, VARIOUS_ARTIST_ID
 
 from .textids import Msg, _S
@@ -49,19 +50,15 @@ from .fuzzymodels import FuzzyArtistItem, FuzzyAlbumItem, FuzzyTrackItem, FuzzyV
 # Fuzzy Functions
 #------------------------------------------------------------------------------
 
-class FuzzyConfig(TidalConfig):
-
-    def __init__(self):
-        TidalConfig.__init__(self)
-
-    def load(self):
-        TidalConfig.load(self)
-
 
 class FuzzySession(TidalSession):
 
-    def __init__(self, config=FuzzyConfig()):
-        TidalSession.__init__(self, config=config)
+    def __init__(self, config=None):
+        self._config = config if config else tidalSettings
+        self._cursor = ''
+        self._cursor_pos = 0
+        self.user = FuzzyUser(self)
+        self.load_session()
 
     def _http_error(self, e):
         try:
@@ -82,9 +79,6 @@ class FuzzySession(TidalSession):
         except:
             pass
         traceback.print_exc()
-
-    def init_user(self, user_id, subscription_type):
-        return FuzzyUser(self, user_id, subscription_type)
 
     def get_playlist(self, playlist_id):
         playlist = None
@@ -137,7 +131,7 @@ class FuzzySession(TidalSession):
     def matchFeaturedArtist(self, text):
         # Extract Featured Artist from text
         try:
-            p = re.compile('.*f(ea)?t\.?\s*(\S+[\s\S&]+).*', re.IGNORECASE)
+            p = re.compile('.*f(ea)?t\.?\s*(\S+[\s\S&]+).*', re.RegexFlag.IGNORECASE)
             m = p.match(text)
             return m.group(2).strip().lower()
         except:
@@ -149,7 +143,7 @@ class FuzzySession(TidalSession):
         # Remove Featured from text
         #txt = txt.split(' ft.')[0].split(' ft ')[0].split('(ft.')[0].split('(ft ')[0].split(' feat')[0].split('(feat')[0]
         # p = re.compile('\(?f(ea)?t\.?\s*\w+[\s\w&]+\)?', re.IGNORECASE)
-        p = re.compile('\(?f(ea)?t\.?\s*\S+[\s\S&]+\)?', re.IGNORECASE)
+        p = re.compile('\(?f(ea)?t\.?\s*\S+[\s\S&]+\)?', re.RegexFlag.IGNORECASE)
         txt = p.sub('', txt)
         # Remove Explicit text
         txt = re.sub('\(Explicit\)', '', txt)
@@ -262,8 +256,8 @@ class FuzzySession(TidalSession):
 
 class FuzzyFavorites(TidalFavorites):
 
-    def __init__(self, session, user_id):
-        TidalFavorites.__init__(self, session, user_id)
+    def __init__(self, session):
+        TidalFavorites.__init__(self, session)
 
     def export_ids(self, what, filename, action):
         try:
@@ -326,9 +320,8 @@ class FuzzyFavorites(TidalFavorites):
 
 class FuzzyUser(TidalUser):
 
-    def __init__(self, session, user_id, subscription_type=SubscriptionType.hifi):
-        TidalUser.__init__(self, session, user_id, subscription_type)
-        self.favorites = FuzzyFavorites(session, user_id)
+    def __init__(self, session):
+        TidalUser.__init__(self, session, favorites=FuzzyFavorites(session))
 
     def export_playlists(self, playlists, filename):
         path = settings.import_export_path
@@ -351,6 +344,8 @@ class FuzzyUser(TidalUser):
                 fd.write(repr({'uuid': playlist.id,
                                'title': playlist.title,
                                'description': playlist.description,
+                               'parentFolderId': playlist.parentFolderId,
+                               'parentFolderName': playlist.parentFolderName,
                                'ids': [item.id for item in items]}) + '\n')
         fd.close()
         progress.close()

@@ -1,3 +1,6 @@
+v0.2.1 (2021-05-24)
+- Matching for TIDAL2 v2.0.2
+
 v0.2.0 (2021-04-08)
 - First version for Kodi 19 (with Kodi 18 compatibility)
 - Matching for TIDAL2 v2.0.1

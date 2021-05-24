@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2021 Arne Svenson
+# Copyright (C) 2016-2021 arneson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ class Msg(object):
     i30004 = 30004 # Max. Number of simultaneous search requests
     i30011 = 30011 # Globals
     i30070 = 30070 # Enable Debug-Logging
-                   
+
     # Search  SearcSettings
     i30080 = 30080 # Blacklists
     i30081 = 30081 # Fuzzy-Level
@@ -42,7 +42,7 @@ class Msg(object):
     i30087 = 30087 # Factors for Fuzzy Search:
     i30088 = 30088 # Increase Match-Level for Favorite Artists
     i30089 = 30089 # Match only in brackets ( ) or [ ]
-                   
+
     i30101 = 30101 # Artist
     i30102 = 30102 # Album
     i30103 = 30103 # Playlist
@@ -53,7 +53,7 @@ class Msg(object):
     i30108 = 30108 # Playlists
     i30109 = 30109 # Tracks
     i30110 = 30110 # Videos
-                   
+
     # Program Progr Text
     i30400 = 30400 # Search Again
     i30401 = 30401 # Search

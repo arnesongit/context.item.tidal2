@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Arne Svenson
+# Copyright (C) 2016-2021 arneson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import re
 
-from tidal2.koditidal import ArtistItem, AlbumItem, TrackItem, VideoItem
+from tidal2.items import ArtistItem, AlbumItem, TrackItem, VideoItem
 
 from .config import settings
 from .fuzzywuzzy import fuzz

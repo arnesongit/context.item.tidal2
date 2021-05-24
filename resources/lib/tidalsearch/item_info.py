@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Arne Svenson
+# Copyright (C) 2016-2021 arneson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -143,14 +143,14 @@ def getGuiListItem(focusId, pos):
 
     # Extract TIDAL Track-ID from comment, if set
     try:
-        match = re.match('.*track_id=(\d+).*', item.get('Comment'), re.IGNORECASE)
+        match = re.match('.*track_id=(\d+).*', item.get('Comment'), re.RegexFlag.IGNORECASE)
         item['track_id'] = match.group(1).strip()
         itemType = 'music'
     except:
         pass
     # Extract TIDAL Video-ID from comment, if set
     try:
-        match = re.match('.*video_id=(\d+).*', item.get('PlotOutline'), re.IGNORECASE)
+        match = re.match('.*video_id=(\d+).*', item.get('PlotOutline'), re.RegexFlag.IGNORECASE)
         item['video_id'] = match.group(1).strip()
         itemType = 'video'
     except:

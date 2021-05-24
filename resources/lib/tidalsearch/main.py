@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Arne Svenson
+# Copyright (C) 2016-2021 arneson
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,7 +49,6 @@ except:
 
 # Init Session Configuration
 session = FuzzySession()
-session.load_session()
 
 add_items = session.add_list_items
 add_directory = session.add_directory_item
@@ -407,7 +406,7 @@ def favorites_import(what):
 
 @plugin.route('/favorites/delete_all/<what>')
 def favorites_delete_all(what):
-    ok = xbmcgui.Dialog().yesno(heading=_S(Msg.i30430).format(what=_P(what)), line1=_S(Msg.i30431).format(what=_P(what)))
+    ok = xbmcgui.Dialog().yesno(_S(Msg.i30430).format(what=_P(what)), _S(Msg.i30431).format(what=_P(what)))
     if ok:
         if what == 'playlists':
             session.user.favorites.delete_all(what=_T('Playlists'), action=session.user.favorites.playlists, remove=session.user.favorites.remove_playlist)
@@ -471,7 +470,7 @@ def search_artist_music():
         xbmcgui.Dialog().notification(plugin.name, _S(Msg.i30404), xbmcgui.NOTIFICATION_ERROR)
         return
     if settings.getSetting('search_artist_music_running') == 'true':
-        if xbmcgui.Dialog().yesno(heading=_S(Msg.i30437), line1=_S(Msg.i30445), line2=_S(Msg.i30446)):
+        if xbmcgui.Dialog().yesno(_S(Msg.i30437), _S(Msg.i30445)+'\n'+_S(Msg.i30446)):
             settings.setSetting('search_artist_music_abort', 'true')
         return
     item = item_info.getSelectedListItem()
@@ -615,7 +614,7 @@ def context_menu():
         commands.append( (_S(Msg.i30434), 'RunPlugin(plugin://%s/user_playlist_import)' % Const.addon_id) )
     if item.get('FileNameAndPath').find('%s/artist/' % _tidal2_addon_id_) >= 0:
         commands.append( (_S(Msg.i30437), 'RunPlugin(plugin://%s/search_artist_music)' % Const.addon_id) )
-    if item.get('FolderPath').find('%s/user_playlists' % _tidal2_addon_id_) >= 0:
+    if item.get('FolderPath').find('%s/user_playlists' % _tidal2_addon_id_) >= 0 and item.get('FileNameAndPath').find('playlist/') > 0:
         uuid = item.get('FileNameAndPath').split('playlist/')[1].split('/')[0]
         commands.append( (_S(Msg.i30435), 'RunPlugin(plugin://%s/user_playlist_export/%s)' % (Const.addon_id, uuid)) )
     commands.append( (_S(Msg.i30423), 'Addon.OpenSettings("%s")' % Const.addon_id) )
@@ -652,6 +651,8 @@ def run():
         except:
             pass
         xbmcgui.Dialog().notification('%s Error %s' % (plugin.name, r.status_code), msg, xbmcgui.NOTIFICATION_ERROR)
+        traceback.print_exc()
+    except:
         traceback.print_exc()
     finally:
         log.killDebugThreads()
