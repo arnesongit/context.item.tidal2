@@ -42,6 +42,7 @@ from tidal2.koditidal import TidalSession, TidalUser, TidalFavorites, VideoItem,
 from tidal2.tidalapi import AlbumType
 from tidal2.tidalapi.models import SearchResult, PlayableMedia, VARIOUS_ARTIST_ID
 
+from .common import PY2
 from .textids import Msg, _S
 from .config import settings, log
 from .fuzzymodels import FuzzyArtistItem, FuzzyAlbumItem, FuzzyTrackItem, FuzzyVideoItem
@@ -131,7 +132,10 @@ class FuzzySession(TidalSession):
     def matchFeaturedArtist(self, text):
         # Extract Featured Artist from text
         try:
-            p = re.compile('.*f(ea)?t\.?\s*(\S+[\s\S&]+).*', re.RegexFlag.IGNORECASE)
+            if PY2:
+                p = re.compile('.*f(ea)?t\.?\s*(\S+[\s\S&]+).*', re.IGNORECASE)
+            else:
+                p = re.compile('.*f(ea)?t\.?\s*(\S+[\s\S&]+).*', re.RegexFlag.IGNORECASE)
             m = p.match(text)
             return m.group(2).strip().lower()
         except:
@@ -143,7 +147,10 @@ class FuzzySession(TidalSession):
         # Remove Featured from text
         #txt = txt.split(' ft.')[0].split(' ft ')[0].split('(ft.')[0].split('(ft ')[0].split(' feat')[0].split('(feat')[0]
         # p = re.compile('\(?f(ea)?t\.?\s*\w+[\s\w&]+\)?', re.IGNORECASE)
-        p = re.compile('\(?f(ea)?t\.?\s*\S+[\s\S&]+\)?', re.RegexFlag.IGNORECASE)
+        if PY2:
+            p = re.compile('\(?f(ea)?t\.?\s*\S+[\s\S&]+\)?', re.IGNORECASE)
+        else:
+            p = re.compile('\(?f(ea)?t\.?\s*\S+[\s\S&]+\)?', re.RegexFlag.IGNORECASE)
         txt = p.sub('', txt)
         # Remove Explicit text
         txt = re.sub('\(Explicit\)', '', txt)

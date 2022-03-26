@@ -17,6 +17,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import sys
 import os
 
 from kodi_six import xbmcaddon
@@ -25,6 +26,8 @@ from routing import Plugin
 #------------------------------------------------------------------------------
 # Global Definitions
 #------------------------------------------------------------------------------
+
+PY2 = sys.version_info[0] == 2
 
 __addon_id__ = 'context.item.tidal2'
 addon = xbmcaddon.Addon(__addon_id__)

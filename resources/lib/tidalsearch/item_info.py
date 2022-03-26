@@ -22,7 +22,7 @@ from datetime import date
 
 from kodi_six import xbmc, xbmcgui
 
-from .common import Const
+from .common import Const, PY2
 from .config import log
 
 
@@ -143,14 +143,20 @@ def getGuiListItem(focusId, pos):
 
     # Extract TIDAL Track-ID from comment, if set
     try:
-        match = re.match('.*track_id=(\d+).*', item.get('Comment'), re.RegexFlag.IGNORECASE)
+        if PY2:
+            match = re.match('.*track_id=(\d+).*', item.get('Comment'), re.IGNORECASE)
+        else:
+            match = re.match('.*track_id=(\d+).*', item.get('Comment'), re.RegexFlag.IGNORECASE)
         item['track_id'] = match.group(1).strip()
         itemType = 'music'
     except:
         pass
     # Extract TIDAL Video-ID from comment, if set
     try:
-        match = re.match('.*video_id=(\d+).*', item.get('PlotOutline'), re.RegexFlag.IGNORECASE)
+        if PY2:
+            match = re.match('.*video_id=(\d+).*', item.get('PlotOutline'), re.IGNORECASE)
+        else:
+            match = re.match('.*video_id=(\d+).*', item.get('PlotOutline'), re.RegexFlag.IGNORECASE)
         item['video_id'] = match.group(1).strip()
         itemType = 'video'
     except:
