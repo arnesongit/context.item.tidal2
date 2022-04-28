@@ -292,10 +292,10 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
         album = li.get('Album') if not li.get('Compilation') else '' # item.get('Title')
         albumartist = li.get('AlbumArtist') if not li.get('Compilation') else '' # item.get('Artist')
         year = '%s' % li.get('YearInt')
-        percent = (pos * 100) / numItems 
+        percent = int((pos * 100) / numItems)
         line1 = '%s: %s' % (_T('artist'), artist)
         line2 = '%s: %s' % (_T('track'), title)
-        progress.update(percent, line1, line2, line3)
+        progress.update(percent, "\n".join([line1, line2, line3]))
         log.info('Searching Title: %s - %s' % (artist, title))
         item_id = li.get('video_id', None) if item_type.startswith('video') else li.get('track_id', None)
         if item_id:
@@ -328,7 +328,7 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
             line3 = '%s: %s - %s' % (_S(Msg.i30412), li.get('Artist'), li.get('Title'))
         pos = pos + 1
 
-    progress.update(percent, line1, line2, line3)
+    progress.update(percent, "\n".join([line1, line2, line3]))
     xbmc.sleep(2000)
     foundItems = len(items)
     line2 = _S(Msg.i30413).format(n=foundItems, m=numItems)
@@ -339,9 +339,9 @@ def convert_to_playlist_run(item_type, from_pos, to_pos, playlist_id):
             log.info('Search aborted by user.')
             return False
     if playlist and foundItems > 0:
-        progress.update(99, _S(Msg.i30417), line2, _S(Msg.i30418))
+        progress.update(99, "\n".join([_S(Msg.i30417), line2, _S(Msg.i30418)]))
         session.user.add_playlist_entries(playlist=playlist, item_ids=['%s' % item.id for item in items])
-        progress.update(100, _S(Msg.i30417), ' ', ' ')
+        progress.update(100, _S(Msg.i30417))
     xbmc.sleep(1000)
     progress.close()
 

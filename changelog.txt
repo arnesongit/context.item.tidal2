@@ -1,3 +1,6 @@
+v0.2.3 (2022-04-28)
+- Fixed progress window in M3U-to-TIDAL-Playlist converter
+
 v0.2.2 (2022-03-26)
 - Matching for TIDAL2 v2.1.0
 
