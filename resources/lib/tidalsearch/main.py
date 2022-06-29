@@ -87,7 +87,7 @@ def search_field(field, text):
     values = {'field': s_field, 'text': s_text}
     settings.setSetting('search_parameters_field', repr(values))
     # Execute Search in new Container
-    xbmc.executebuiltin('Container.Update(%s, True)' % plugin.url_for(search_field_exec))
+    xbmc.executebuiltin('ActivateWindow(Music,%s,return)' % plugin.url_for(search_field_exec))
 
 
 @plugin.route('/search_field_exec')
@@ -158,7 +158,7 @@ def search_fuzzy_fields(artist, title, album, albumartist, year):
     values = {'artist': s_artist, 'title': s_title, 'album': s_album, 'albumartist': s_albumartist, 'year': s_year}
     settings.setSetting('search_parameters', repr(values))
     # Execute Search in new Container
-    xbmc.executebuiltin('Container.Update(%s, True)' % plugin.url_for(search_fuzzy_exec))
+    xbmc.executebuiltin('ActivateWindow(Music,%s,return)' % plugin.url_for(search_fuzzy_exec))
 
 
 @plugin.route('/search_fuzzy_exec')
@@ -377,6 +377,8 @@ def favorites_export(what):
         session.user.favorites.export_ids(what=_P('Tracks'), filename=name, action=session.user.favorites.tracks)
     elif what == 'videos':
         session.user.favorites.export_ids(what=_P('Videos'), filename=name, action=session.user.favorites.videos)
+    elif what == 'mixes':
+        session.user.favorites.export_ids(what=_P('Mixes'), filename=name, action=session.user.favorites.mixes)
 
 
 @plugin.route('/favorites/import/<what>')
@@ -401,6 +403,8 @@ def favorites_import(what):
         ok = session.user.favorites.import_ids(what=_T('Tracks'), filename=name, action=session.user.favorites.add_track)
     elif what == 'videos':
         ok = session.user.favorites.import_ids(what=_T('Videos'), filename=name, action=session.user.favorites.add_video)
+    elif what == 'mixes':
+        ok = session.user.favorites.import_ids(what=_T('Mixes'), filename=name, action=session.user.favorites.add_mix)
     return ok
 
 
@@ -418,6 +422,8 @@ def favorites_delete_all(what):
             session.user.favorites.delete_all(what=_T('Tracks'), action=session.user.favorites.tracks, remove=session.user.favorites.remove_track)
         elif what == 'videos':
             session.user.favorites.delete_all(what=_T('Videos'), action=session.user.favorites.videos, remove=session.user.favorites.remove_video)
+        elif what == 'mixes':
+            session.user.favorites.delete_all(what=_T('Mixes'), action=session.user.favorites.videos, remove=session.user.favorites.remove_mix)
     return ok
 
 
@@ -609,6 +615,10 @@ def context_menu():
         commands.append( (_S(Msg.i30426).format(what=_P('videos')), 'RunPlugin(plugin://%s/favorites/export/videos)' % Const.addon_id) )
         commands.append( (_S(Msg.i30427).format(what=_P('videos')), 'RunPlugin(plugin://%s/favorites/import/videos)' % Const.addon_id) )
         commands.append( (_S(Msg.i30436).format(what=_P('videos')), 'RunPlugin(plugin://%s/favorites/delete_all/videos)' % Const.addon_id) )
+    elif item.get('FileNameAndPath').find('%s/favorites/mixes' % _tidal2_addon_id_) >= 0:
+        commands.append( (_S(Msg.i30426).format(what=_P('mixes')), 'RunPlugin(plugin://%s/favorites/export/mixes)' % Const.addon_id) )
+        commands.append( (_S(Msg.i30427).format(what=_P('mixes')), 'RunPlugin(plugin://%s/favorites/import/mixes)' % Const.addon_id) )
+        commands.append( (_S(Msg.i30436).format(what=_P('mixes')), 'RunPlugin(plugin://%s/favorites/delete_all/mixes)' % Const.addon_id) )
     elif item.get('FileNameAndPath').find('%s/user_playlists' % _tidal2_addon_id_) >= 0:
         commands.append( (_S(Msg.i30433), 'RunPlugin(plugin://%s/user_playlist_export_all)' % Const.addon_id) )
         commands.append( (_S(Msg.i30434), 'RunPlugin(plugin://%s/user_playlist_import)' % Const.addon_id) )

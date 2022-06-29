@@ -1,3 +1,7 @@
+v0.2.4 (2022-06-29)
+- Support for Export/Import of mixes
+- Using ActivateWindow instead of Container.Update to show search results.
+
 v0.2.3 (2022-04-28)
 - Fixed progress window in M3U-to-TIDAL-Playlist converter
 
