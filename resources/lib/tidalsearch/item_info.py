@@ -73,7 +73,7 @@ def itemInfoDialog():
              'Rating= \"%s\", UserRating= \"%s\"' % (item.get('Rating'), item.get('UserRating')),
              'PlotOutline= \"%s\"' % item.get('PlotOutline'),
              'Studio= \"%s\"' % item.get('Studio'),
-             'Year= \"%s\"' % item.get('Year'),
+             'Year= \"%s\", Date=\"%s\", ReleaseDate=\"%s\"' % (item.get('Year'), item.get('Date'), item.get('ReleaseDate')),
              'Duration= \"%s\"' % item.get('Duration'),
              'Fanart= \"%s\"' % item.get('Fanart'),
              'Thumb= \"%s\"' % item.get('Thumbnail'),
@@ -104,7 +104,7 @@ def getAllListItems():
 
 def getGuiListItem(focusId, pos):
 
-    labels = [ 'FileNameAndPath', 'Label', 'Artist', 'Title', 'Album', 'AlbumArtist', 'Rating', 'UserRating',
+    labels = [ 'FileNameAndPath', 'Label', 'Artist', 'Title', 'Album', 'AlbumArtist', 'Rating', 'UserRating', 'Date', 'ReleaseDate',
                'Genre', 'TrackNumber', 'PlotOutline', 'Studio', 'Comment', 'Year', 'Duration', 'Fanart', 'Thumbnail' ]
     position = 'Container(%s).ListitemPosition(%s).' % (focusId, pos)
     # Initial Item Label Values
@@ -114,7 +114,7 @@ def getGuiListItem(focusId, pos):
             'Position': int('0%s' % pos),
             'NumItems': int('0%s' % xbmc.getInfoLabel('Container(%s).NumItems' % focusId)),
             'OriLabel': xbmc.getInfoLabel(position + 'Label'),
-            'Compilation': False }
+            'Compilation': False}
     # Patterns to remove from Colored Labels
     #patterns = [ '\[COLOR \w+\]', '\[\/COLOR\]', '\[\/?B\]', '\[\/?I\]', '\[\/?LIGHT\]',
     #             '\[\/?UPPERCASE\]','\[\/?LOWERCASE\]', '\[\/?CAPITALIZE\]', '\[CR\]',

@@ -4,6 +4,9 @@
     <string id="30001">TIDAL2 Search ...</string>
     <string id="30003">Export/Import Path</string>
     <string id="30004">Max. Number of simultaneous search requests</string>
+    <string id="30005">Enable virtual Library</string>
+    <string id="30006">Artist Folder</string>
+    <string id="30007">Album Folder</string>
     <string id="30011">Globals</string>
     <string id="30070">Enable Debug-Logging</string>
 
@@ -59,8 +62,8 @@
     <string id="30425">Authorization problem</string>
     <string id="30426">Export Favorite {what} ...</string>
     <string id="30427">Import Favorite {what} ...</string>
-    <string id="30428">{n} exported</string>
-    <string id="30429">{n} imported</string>
+    <string id="30428">{n} items exported</string>
+    <string id="30429">{n} items imported</string>
     <string id="30430">Delete Favorite {what}</string>
     <string id="30431">Remove all {what} from Favorites ?</string>
     <string id="30432">Import {what}</string>
@@ -78,5 +81,13 @@
     <string id="30444">Search aborted.</string>
     <string id="30445">Search Threads are still running.</string>
     <string id="30446">Should all Threads be aborted ?</string>
+    <string id="30447">Move Atmos tracks ...</string>
+    <string id="30448">Move RA360 tracks ...</string>
+    <string id="30449">Move MQA tracks ...</string>
+    <string id="30450">Move duplicate tracks ...</string>
+    <string id="30451">Move Track to other playlist</string>
+    <string id="30452">Export to virtual Library</string>
+    <string id="30453">Move from here ...</string>
+    <string id="30454">How many items ?</string>
 
 </strings>

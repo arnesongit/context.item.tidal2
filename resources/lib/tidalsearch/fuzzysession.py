@@ -105,10 +105,18 @@ class FuzzySession(TidalSession):
             self._http_error(e)
         return items
 
-    def get_album(self, album_id, withCache=True):
+    def get_artist(self, artist_id):
+        artist = None
+        try:
+            artist = FuzzyArtistItem(TidalSession.get_artist(self, artist_id))
+        except Exception as e:
+            self._http_error(e)
+        return artist
+
+    def get_album(self, album_id):
         album = None
         try:
-            album = TidalSession.get_album(self, album_id, withCache=withCache)
+            album = FuzzyAlbumItem(TidalSession.get_album(self, album_id))
         except Exception as e:
             self._http_error(e)
         return album
@@ -259,6 +267,65 @@ class FuzzySession(TidalSession):
             self.add_list_items(searchresults.videos, end=False)
         if end:
             self.add_list_items([], end=True)
+
+    def cleanupText(self, data):
+        data = data.replace('\\', '_')
+        data = data.replace('/', '_')
+        data = re.sub('\s?&\s?', ' and ', data)
+        return data
+
+    def export_artist_nfo(self, artist_id):
+        if not settings.enable_nfo_export or not settings.artist_export_path:
+            return False
+        try:
+            artist = self.get_artist(artist_id)
+            text = ''
+            try:
+                info = self.get_artist_info(artist_id)
+                if info.get('summary', None):
+                    text += '%s:\n\n' % _T(Msg2.i30230) + info.get('summary') + '\n\n'
+                if info.get('text', None):
+                    text += '%s:\n\n' % _T(Msg2.i30225) + info.get('text')
+            except:
+                pass
+            et = artist.getNfoTree(text)
+            path = os.path.join(settings.artist_export_path, self.cleanupText(artist.name))
+            xbmcvfs.mkdirs(xbmcvfs.makeLegalFilename(path))
+            filename = xbmcvfs.makeLegalFilename(os.path.join(path, 'artist.nfo'))
+            et.write(filename, encoding='UTF-8', xml_declaration=True, short_empty_elements=False)
+        except Exception as e:
+            log.logException(e)
+            traceback.print_exc()
+            return False
+        return True
+
+    def export_album_nfo(self, album_id):
+        if not settings.enable_nfo_export:
+            return False
+        try:
+            album = self.get_album(album_id)
+            self.export_artist_nfo(album.artist.id)
+            if settings.album_export_path:
+                et = album.getNfoTree()
+                path = os.path.join(settings.album_export_path, self.cleanupText(album.artist.name), self.cleanupText(album.title))
+                xbmcvfs.mkdirs(xbmcvfs.makeLegalFilename(path))
+                filename = xbmcvfs.makeLegalFilename(os.path.join(path, 'album.nfo'))
+                et.write(filename, encoding='UTF-8', xml_declaration=True, short_empty_elements=False)
+                items = self.get_album_items(album_id)
+                for item in items:
+                    item = FuzzyVideoItem(item) if isinstance(item, VideoItem) else FuzzyTrackItem(item)
+                    item.album = album
+                    filename = xbmcvfs.makeLegalFilename(os.path.join(path, '%02d - %s' % (item.trackNumber, item.getSimpleLabel())))
+                    if isinstance(item, VideoItem):
+                        text = tidalPlugin.url_for_path('/play_video/%s' % item.id)
+                    else:
+                        text = tidalPlugin.url_for_path('/play_track/%s/%s' % (item.id, item.album.id))
+                    fd = xbmcvfs.File(filename + '.strm', 'w')
+                    fd.write(text)
+                    fd.close()
+        except Exception as e:
+            log.logException(e)
+            traceback.print_exc()
 
 
 class FuzzyFavorites(TidalFavorites):

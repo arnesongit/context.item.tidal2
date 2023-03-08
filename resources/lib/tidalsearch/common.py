@@ -19,8 +19,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys
 import os
+import json
 
-from kodi_six import xbmcaddon
+from kodi_six import xbmc, xbmcaddon
 from routing import Plugin
 
 #------------------------------------------------------------------------------
@@ -31,6 +32,12 @@ PY2 = sys.version_info[0] == 2
 
 __addon_id__ = 'context.item.tidal2'
 addon = xbmcaddon.Addon(__addon_id__)
+
+try:
+    version = json.loads(xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Application.GetProperties", "params": {"properties": ["version", "name"]}, "id": 1 }'))['result']['version']
+    KODI_VERSION = (version['major'], version['minor'])
+except:
+    KODI_VERSION = (16, 1)
 
 class Const(object):
     addon_id = addon.getAddonInfo('id')

@@ -28,6 +28,18 @@ msgctxt "#30004"
 msgid "Max. Number of simultaneous search requests"
 msgstr ""
 
+msgctxt "#30005"
+msgid "Enable virtual Library"
+msgstr ""
+
+msgctxt "#30006"
+msgid "Artist Folder"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Album Folder"
+msgstr ""
+
 msgctxt "#30011"
 msgid "Globals"
 msgstr ""
@@ -229,11 +241,11 @@ msgid "Import Favorite {what} ..."
 msgstr ""
 
 msgctxt "#30428"
-msgid "{n} exported"
+msgid "{n} items exported"
 msgstr ""
 
 msgctxt "#30429"
-msgid "{n} imported"
+msgid "{n} items imported"
 msgstr ""
 
 msgctxt "#30430"
@@ -302,5 +314,37 @@ msgstr ""
 
 msgctxt "#30446"
 msgid "Should all Threads be aborted ?"
+msgstr ""
+
+msgctxt "#30447"
+msgid "Move Atmos tracks ..."
+msgstr ""
+
+msgctxt "#30448"
+msgid "Move RA360 tracks ..."
+msgstr ""
+
+msgctxt "#30449"
+msgid "Move MQA tracks ..."
+msgstr ""
+
+msgctxt "#30450"
+msgid "Move duplicate tracks ..."
+msgstr ""
+
+msgctxt "#30451"
+msgid "Move Track to other playlist"
+msgstr ""
+
+msgctxt "#30452"
+msgid "Export to virtual Library"
+msgstr ""
+
+msgctxt "#30453"
+msgid "Move from here ..."
+msgstr ""
+
+msgctxt "#30454"
+msgid "How many items ?"
 msgstr ""
 

@@ -19,8 +19,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import re
 
-from tidal2.items import ArtistItem, AlbumItem, TrackItem, VideoItem
+from xml.etree import ElementTree as etree
+from xml.sax.saxutils import escape
 
+from tidal2.items import ArtistItem, AlbumItem, TrackItem, VideoItem
+from tidal2.tidalapi import models as tidal
+
+from .common import KODI_VERSION
 from .config import settings
 from .fuzzywuzzy import fuzz
 
@@ -74,6 +79,17 @@ def addFuzzyLevel(item, multiplier, searchField, resultField, checkBlacklist=Tru
     return level
 
 
+def RootElement(tag):
+    element = etree.Element(tag)
+    element.text = '\n'
+    element.tail = '\n'
+    return element
+
+def SubElement(parent, tag, attrib={}, **extra):
+    element = etree.SubElement(parent, tag, attrib, **extra)
+    element.tail = '\n'
+    return element
+
 #------------------------------------------------------------------------------
 # Class FuzzyArtistItem
 #------------------------------------------------------------------------------
@@ -113,6 +129,14 @@ class FuzzyArtistItem(ArtistItem):
     def isBlacklisted(self):
         return self._blacklisted
 
+    def getNfoTree(self, biography=''):
+        root = RootElement('artist')
+        SubElement(root, "name").text = escape(self.name)
+        SubElement(root, "biography").text = escape(biography)
+        SubElement(root, "thumb", aspect='thumb', preview=self.image or '').text = escape(self.image or '')
+        SubElement(root, "thumb", aspect='fanart', preview=self.fanart or '').text = escape(self.fanart or '')
+        return etree.ElementTree(root)
+
 #------------------------------------------------------------------------------
 # Class FuzzyAlbumItem
 #------------------------------------------------------------------------------
@@ -133,6 +157,20 @@ class FuzzyAlbumItem(AlbumItem):
         if field == 'match':
             return self.getFuzzyLevel()
         return cleanupText(self.getLabel())
+
+    @property
+    def numberOfItems(self):
+        return self.numberOfTracks + self.numberOfVideos
+
+    def getSimpleLabel(self):
+        label = '%s - %s' % (self.artist.name, self.title)
+        if self.type == tidal.AlbumType.ep:
+            label += ' (EP)'
+        elif self.type == tidal.AlbumType.single:
+            label += ' (Single)'
+        if getattr(self, 'year', None):
+            label += ' (%s)' % self.year
+        return label
 
     def getComments(self):
         comments = [] # AlbumItem2.getComments(self)
@@ -168,6 +206,20 @@ class FuzzyAlbumItem(AlbumItem):
             return self._blacklisted or self.artist._blacklisted
         return self._blacklisted
 
+    def getNfoTree(self):
+        root = RootElement('album')
+        SubElement(root, "title").text = escape(self.title)
+        SubElement(root, "artistdesc").text = escape(self.artist.name)
+        SubElement(root, "compilation").text = 'true' if '%s' % self.artist.id == tidal.VARIOUS_ARTIST_ID else 'false'
+        if self.releaseDate:
+            SubElement(root, "releasedate").text = self.releaseDate.date().strftime('%Y-%m-%d')
+        SubElement(root, "duration").text = '%s' % self.duration
+        SubElement(root, "rating", max='10').text = '%s' % int(round(self.popularity / 10.0))
+        SubElement(root, "userrating", max='10').text = '%s' % int(round(self.popularity / 10.0))
+        SubElement(root, "thumb", aspect='thumb', preview=self.image or '').text = escape(self.image or '')
+        SubElement(root, "thumb", aspect='fanart', preview=self.fanart or '').text = escape(self.fanart or '')
+        return etree.ElementTree(root)
+
 #------------------------------------------------------------------------------
 # Class FuzzyTrackItem
 #------------------------------------------------------------------------------
@@ -190,9 +242,19 @@ class FuzzyTrackItem(TrackItem):
             return self.getFuzzyLevel()
         return cleanupText(self.getLabel())
 
+    def getSimpleLabel(self):
+        label = '%s - %s' % (self.artist.name, self.title)
+        if self.version and not self.version in self.title:
+            label += ' (%s)' % self.version
+        return label
+
     def getListItem(self):
         url, li, isFolder = TrackItem.getListItem(self)
-        li.setInfo('music', {'comment': ','.join(self.getComments()) })
+        if KODI_VERSION >= (20, 0):
+            tag = li.getMusicInfoTag()
+            tag.setComment(','.join(self.getComments()))
+        else:
+            li.setInfo('music', {'comment': ','.join(self.getComments()) })
         return (url, li, isFolder)
 
     def getComments(self):
@@ -258,9 +320,17 @@ class FuzzyVideoItem(VideoItem):
             return self.getFuzzyLevel()
         return cleanupText(self.getLabel())
 
+    def getSimpleLabel(self):
+        label = '%s - %s' % (self.artist.name, self.getLongTitle())
+        return label
+
     def getListItem(self):
         url, li, isFolder = VideoItem.getListItem(self)
-        li.setInfo('music', {'comment': ','.join(self.getComments()) })
+        if KODI_VERSION >= (20, 0):
+            tag = li.getVideoInfoTag()
+            tag.setPlot(','.join(self.getComments()))
+        else:
+            li.setInfo('music', {'comment': ','.join(self.getComments()) })
         return (url, li, isFolder)
 
     def getComments(self):

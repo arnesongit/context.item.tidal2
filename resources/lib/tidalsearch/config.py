@@ -42,6 +42,10 @@ class Config(object):
 
         self.import_export_path = self.getSetting('import_export_path')
 
+        self.enable_nfo_export = True if self.getSetting('enable_nfo_export') == 'true' else False
+        self.artist_export_path = self.getSetting('artist_export_path')
+        self.album_export_path = self.getSetting('album_export_path')
+
         self.max_thread_count = max(1, int('0%s' % self.getSetting('max_thread_count')))
         self.debug = True if self.getSetting('debug_log') == 'true' else False
 

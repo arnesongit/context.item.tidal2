@@ -26,13 +26,14 @@ from requests import HTTPError
 from tidal2.common import __addon_id__ as _tidal2_addon_id_
 from tidal2.textids import _T, _P
 from tidal2.config import settings as tidalSettings
-from tidal2.koditidal import PlaylistItem
+from tidal2.items import PlaylistItem, TrackItem
 from tidal2.tidalapi import Playlist
 
 from .common import Const, plugin
 from .textids import Msg, _S
 from .config import settings, log
 from .fuzzysession import FuzzySession, NewMusicSearcher
+from .fuzzymodels import FuzzyTrackItem
 from . import item_info
 
 try:
@@ -54,7 +55,10 @@ add_items = session.add_list_items
 add_directory = session.add_directory_item
 add_search_results = session.add_search_result
 
-FOLDER_MASK = '[COLOR blue]%s[/COLOR]' if tidalSettings.color_mode else '%s'
+try:
+    FOLDER_MASK = tidalSettings.folder_mask
+except:
+    FOLDER_MASK = '{folder}'
 
 #------------------------------------------------------------------------------
 # Plugin Functions
@@ -198,7 +202,7 @@ def search_fuzzy_edit():
             ]
     answer = 1
     while answer > 0:
-        menue = ['%s%s' % (FOLDER_MASK % s_head, params.get(s_key)) for s_key, s_head in cmds]
+        menue = ['%s%s' % (FOLDER_MASK.format(label=s_head), params.get(s_key)) for s_key, s_head in cmds]
         answer = xbmcgui.Dialog().select(_S(Msg.i30400), menue)
         if answer > 0:
             keyboard = xbmc.Keyboard(params.get(cmds[answer][0]), cmds[answer][1])
@@ -239,7 +243,7 @@ def convert_to_playlist(item_type):
     numItems = item['NumItems']
     answer = 1
     while answer > 0:
-        menue = ['%s%s' % (FOLDER_MASK % s_head, item.get(s_key)) for s_key, s_head in cmds]
+        menue = ['%s%s' % (FOLDER_MASK.format(label=s_head), item.get(s_key)) for s_key, s_head in cmds]
         answer = xbmcgui.Dialog().select(_S(Msg.i30408), menue)
         if answer == 0 and not item['playlist_id']:
             answer = 1 # Playlist not set
@@ -539,7 +543,7 @@ def search_artist_music():
             }
     answer = 1
     while answer > 0:
-        menue = ['%s%s' % (FOLDER_MASK % s_head, item.get(s_key)) for s_key, s_head in cmds]
+        menue = ['%s%s' % (FOLDER_MASK.format(label=s_head), item.get(s_key)) for s_key, s_head in cmds]
         answer = xbmcgui.Dialog().select(_S(Msg.i30437), menue)
         if answer > 0:
             if answer >= 1 and answer <= 3:
@@ -580,6 +584,101 @@ def search_artist_music():
     settings.setSetting('search_artist_music_abort', 'false')
     searcher.search(artists, thread_count=settings.max_thread_count)
     settings.setSetting('search_artist_music_running', 'false')
+
+
+@plugin.route('/user_playlist_move/<what>/<playlist_id>')
+def user_playlist_move(what, playlist_id):
+    if not session.is_logged_in:
+        return
+    try:
+        mqa_tracks = []
+        atmos_tracks = []
+        ra360_tracks = []
+        dup_tracks = []
+        good_tracks = {}
+        playlist = session.get_playlist(playlist_id)
+        isAlbumPlaylist = True if 'ALBUM' in playlist.description else False
+        items = session.get_playlist_items(playlist)
+        items = [FuzzyTrackItem(i) for i in items if isinstance(i, TrackItem) and i.available]
+        for item in items:
+            if item.isMqa:
+                mqa_tracks.append(item)
+            if item.isDolbyAtmos:
+                atmos_tracks.append(item)
+            if item.isSony360RA:
+                ra360_tracks.append(item)
+            label = item.album.getSimpleLabel() if isAlbumPlaylist else item.getSimpleLabel()
+            good = good_tracks.get(label, None)
+            if good == None:
+                good_tracks[label] = item
+            else:
+                # Item with same name exists. Keep the one, which is 'better'
+                if  ( item.isMqa == good.isMqa and item.explicit and not good.explicit ) or \
+                    ( item.explicit == good.explicit and item.isMqa and not good.isMqa ) or \
+                    ( isAlbumPlaylist and item.explicit == good.explicit and item.isMqa == good.isMqa and session.get_album(item.album.id).numberOfItems > session.get_album(good.album.id).numberOfItems ):
+                    # The item is better
+                    dup_tracks.append(good)
+                    good_tracks[label] = item
+                else:
+                    # The exiting track is 'better'
+                    dup_tracks.append(item)
+        if what == 'mqa':
+            items = mqa_tracks
+        elif what == 'atmos':
+            items = atmos_tracks
+        elif what == '360':
+            items = ra360_tracks
+        else:
+            items = dup_tracks
+        text = ['%s: %s' % (i._playlist_pos, i.getLabel()) for i in items]
+        selected = xbmcgui.Dialog().multiselect(_S(Msg.i30451), text, preselect=list(range(len(items))))
+        if selected:
+            dest_playlist = session.user.selectPlaylistDialog(allowNew=True)
+            if dest_playlist and playlist.id != dest_playlist.id:
+                session.user.add_playlist_entries(dest_playlist, ['%s' % items[i].id for i in selected])
+                session.user.remove_playlist_entry(playlist, entry_no=','.join(['%s' % items[i]._playlist_pos for i in selected]))
+    except Exception as e:
+        log.logException(e)
+        traceback.print_exc()
+    xbmc.executebuiltin('Container.Refresh()')
+
+
+@plugin.route('/user_playlist_move_from/<playlist_id>/<item_id>')
+def user_playlist_move_from(playlist_id, item_id):
+    if not session.is_logged_in:
+        return
+    try:
+        playlist = session.get_playlist(playlist_id)
+        items = session.get_playlist_items(playlist)
+        while len(items) > 0 and '%s' % items[0].id != '%s' % item_id:
+            items.pop(0)
+        if len(items) > 0:
+            count = int('0' + xbmcgui.Dialog().numeric(0, _S(Msg.i30454), defaultt='%s' % len(items)))
+            if count < 1:
+                return
+            if count > len(items):
+                count = len(items)
+            text = ['%s: %s' % (i._playlist_pos, i.getLabel()) for i in items]
+            selected = xbmcgui.Dialog().multiselect(_S(Msg.i30451), text, preselect=list(range(len(items)))[0:count])
+            if selected:
+                dest_playlist = session.user.selectPlaylistDialog(allowNew=True)
+                if dest_playlist and playlist.id != dest_playlist.id:
+                    session.user.add_playlist_entries(dest_playlist, ['%s' % items[i].id for i in selected])
+                    session.user.remove_playlist_entry(playlist, entry_no=','.join(['%s' % items[i]._playlist_pos for i in selected]))
+    except Exception as e:
+        log.logException(e)
+        traceback.print_exc()
+    xbmc.executebuiltin('Container.Refresh()')
+
+
+@plugin.route('/export_artist_nfo/<artist_id>')
+def export_artist_nfo(artist_id):
+    session.export_artist_nfo(artist_id)
+
+@plugin.route('/export_album_nfo/<album_id>')
+def export_album_nfo(album_id):
+    session.export_album_nfo(album_id)
+
 
 #------------------------------------------------------------------------------
 # Context Menu Function
@@ -624,9 +723,35 @@ def context_menu():
         commands.append( (_S(Msg.i30434), 'RunPlugin(plugin://%s/user_playlist_import)' % Const.addon_id) )
     if item.get('FileNameAndPath').find('%s/artist/' % _tidal2_addon_id_) >= 0:
         commands.append( (_S(Msg.i30437), 'RunPlugin(plugin://%s/search_artist_music)' % Const.addon_id) )
+        if settings.enable_nfo_export:
+            artist_id = item.get('FileNameAndPath').split('artist/')[1].split('/')[0]
+            commands.append( (_S(Msg.i30452), 'RunPlugin(plugin://%s/export_artist_nfo/%s)' % (Const.addon_id, artist_id)) )
+    if item.get('FileNameAndPath').find('%s/album/' % _tidal2_addon_id_) >= 0:
+        if settings.enable_nfo_export:
+            album_id = item.get('FileNameAndPath').split('album/')[1].split('/')[0]
+            commands.append( (_S(Msg.i30452), 'RunPlugin(plugin://%s/export_album_nfo/%s)' % (Const.addon_id, album_id)) )
     if item.get('FolderPath').find('%s/user_playlists' % _tidal2_addon_id_) >= 0 and item.get('FileNameAndPath').find('playlist/') > 0:
         uuid = item.get('FileNameAndPath').split('playlist/')[1].split('/')[0]
         commands.append( (_S(Msg.i30435), 'RunPlugin(plugin://%s/user_playlist_export/%s)' % (Const.addon_id, uuid)) )
+    if item.get('FolderPath').find('%s/user_folders' % _tidal2_addon_id_) >= 0 and item.get('FileNameAndPath').find('playlist/') > 0:
+        uuid = item.get('FileNameAndPath').split('playlist/')[1].split('/')[0]
+        commands.append( (_S(Msg.i30435), 'RunPlugin(plugin://%s/user_playlist_export/%s)' % (Const.addon_id, uuid)) )
+        commands.append( (_S(Msg.i30449), 'RunPlugin(plugin://%s/user_playlist_move/mqa/%s)' % (Const.addon_id, uuid)) )
+        commands.append( (_S(Msg.i30447), 'RunPlugin(plugin://%s/user_playlist_move/atmos/%s)' % (Const.addon_id, uuid)) )
+        commands.append( (_S(Msg.i30448), 'RunPlugin(plugin://%s/user_playlist_move/360/%s)' % (Const.addon_id, uuid)) )
+        commands.append( (_S(Msg.i30450), 'RunPlugin(plugin://%s/user_playlist_move/duplicates/%s)' % (Const.addon_id, uuid)) )
+    if item.get('FolderPath').find('%s/playlist' % _tidal2_addon_id_) >= 0 and item.get('FolderPath').find('/items') > 0:
+        uuid = item.get('FolderPath').split('playlist/')[1].split('/')[0]
+        session.user.load_cache()
+        plist = session.user.playlists_cache.get(uuid, '')
+        if plist:
+            item_id = None
+            if item.get('FileNameAndPath').find('play_track/') > 0:
+                item_id = item.get('FileNameAndPath').split('play_track/')[1].split('/')[0]
+            elif item.get('FileNameAndPath').find('play_video/') > 0:
+                item_id = item.get('FileNameAndPath').split('play_video/')[1].split('/')[0]
+            if item_id and item_id in plist['ids']:
+                commands.append( (_S(Msg.i30453), 'RunPlugin(plugin://%s/user_playlist_move_from/%s/%s)' % (Const.addon_id, uuid, item_id)) )
     commands.append( (_S(Msg.i30423), 'Addon.OpenSettings("%s")' % Const.addon_id) )
     commands.append( ('TIDAL2-' + _S(Msg.i30423), 'Addon.OpenSettings("%s")' % _tidal2_addon_id_) )
     if settings.debug:

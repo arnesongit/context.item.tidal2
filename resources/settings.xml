@@ -2,6 +2,9 @@
 <settings>
   <category label="30011">
     <setting label="30003" id="import_export_path" type="folder" source="auto" option="writeable"/>
+    <setting label="30005" id="enable_nfo_export" type="bool" default="false" />
+    <setting label="30006" id="artist_export_path" type="folder" source="auto" option="writeable" visible="eq(-1,true)"/>
+    <setting label="30007" id="album_export_path" type="folder" source="auto" option="writeable" visible="eq(-2,true)"/>
     <setting label="30004" id="max_thread_count" type="slider" default="10" range="1,1,20" option="int"/>
     <setting label="30070" id="debug_log" type="bool" default="false" />
   </category>

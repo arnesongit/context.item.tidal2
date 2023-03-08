@@ -28,6 +28,18 @@ msgctxt "#30004"
 msgid "Max. Number of simultaneous search requests"
 msgstr "Max. Anzahl gleichzeitiger Such-Anfragen"
 
+msgctxt "#30005"
+msgid "Enable virtual Library"
+msgstr "Virtuelle Library aktivieren"
+
+msgctxt "#30006"
+msgid "Artist Folder"
+msgstr "Künstler-Verzeichnis"
+
+msgctxt "#30007"
+msgid "Album Folder"
+msgstr "Album-Verzeichnis"
+
 msgctxt "#30011"
 msgid "Globals"
 msgstr "Allgemeines"
@@ -229,12 +241,12 @@ msgid "Import Favorite {what} ..."
 msgstr "{what}-Favoriten importieren ..."
 
 msgctxt "#30428"
-msgid "{n} exported"
-msgstr "{n} exportiert"
+msgid "{n} items exported"
+msgstr "{n} Einträge exportiert"
 
 msgctxt "#30429"
-msgid "{n} imported"
-msgstr "{n} importiert"
+msgid "{n} items imported"
+msgstr "{n} Einträge importiert"
 
 msgctxt "#30430"
 msgid "Delete Favorite {what}"
@@ -303,4 +315,36 @@ msgstr "Die Suche ist noch aktiv."
 msgctxt "#30446"
 msgid "Should all Threads be aborted ?"
 msgstr "Soll die Suche abgebrochen werden ?"
+
+msgctxt "#30447"
+msgid "Move Atmos tracks ..."
+msgstr "Atmos-Titel verschieben ..."
+
+msgctxt "#30448"
+msgid "Move RA360 tracks ..."
+msgstr "RA360-Titel verschieben ..."
+
+msgctxt "#30449"
+msgid "Move MQA tracks ..."
+msgstr "MQA-Titel verschieben ..."
+
+msgctxt "#30450"
+msgid "Move duplicate tracks ..."
+msgstr "Doppelte Titel verschieben ..."
+
+msgctxt "#30451"
+msgid "Move Track to other playlist"
+msgstr "Titel in andere Playliste verschieben"
+
+msgctxt "#30452"
+msgid "Export to virtual Library"
+msgstr "Export in virtuelle Library"
+
+msgctxt "#30453"
+msgid "Move from here ..."
+msgstr "Ab hier verschieben ..."
+
+msgctxt "#30454"
+msgid "How many items ?"
+msgstr "Wieviele Einträge ?"
 

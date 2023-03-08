@@ -4,6 +4,9 @@
     <string id="30001">TIDAL2 Search ...</string>
     <string id="30003">Export-/Import-Verzeichnis</string>
     <string id="30004">Max. Anzahl gleichzeitiger Such-Anfragen</string>
+    <string id="30005">Virtuelle Library aktivieren</string>
+    <string id="30006">Künstler-Verzeichnis</string>
+    <string id="30007">Album-Verzeichnis</string>
     <string id="30011">Allgemeines</string>
     <string id="30070">Debug-Logging aktivieren</string>
 
@@ -59,8 +62,8 @@
     <string id="30425">Anmeldefehler !</string>
     <string id="30426">{what}-Favoriten exportieren ...</string>
     <string id="30427">{what}-Favoriten importieren ...</string>
-    <string id="30428">{n} exportiert</string>
-    <string id="30429">{n} importiert</string>
+    <string id="30428">{n} Einträge exportiert</string>
+    <string id="30429">{n} Einträge importiert</string>
     <string id="30430">{what}-Favoriten löschen</string>
     <string id="30431">Sollen alle {what}-Favoriten gelöscht werden ?</string>
     <string id="30432">{what} importieren</string>
@@ -78,5 +81,13 @@
     <string id="30444">Suche abgebrochen.</string>
     <string id="30445">Die Suche ist noch aktiv.</string>
     <string id="30446">Soll die Suche abgebrochen werden ?</string>
+    <string id="30447">Atmos-Titel verschieben ...</string>
+    <string id="30448">RA360-Titel verschieben ...</string>
+    <string id="30449">MQA-Titel verschieben ...</string>
+    <string id="30450">Doppelte Titel verschieben ...</string>
+    <string id="30451">Titel in andere Playliste verschieben</string>
+    <string id="30452">Export in virtuelle Library</string>
+    <string id="30453">Ab hier verschieben ...</string>
+    <string id="30454">Wieviele Einträge ?</string>
 
 </strings>
