@@ -348,3 +348,7 @@ msgctxt "#30454"
 msgid "How many items ?"
 msgstr ""
 
+msgctxt "#30455"
+msgid "Move items ..."
+msgstr ""
+

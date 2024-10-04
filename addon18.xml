@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="context.item.tidal2" name="TIDAL2 Search" version="0.2.5" provider-name="arneson">
+<addon id="context.item.tidal2" name="TIDAL2 Search" version="0.2.6" provider-name="arneson">
   <requires>
     <import addon="xbmc.python" version="2.24.0"/>
     <import addon="script.module.requests"/>
@@ -27,20 +27,10 @@
     <license>GNU GENERAL PUBLIC LICENSE. Version 3, 29 June 2007</license>
     <forum></forum>
     <source>https://github.com/arnesongit/context.item.tidal2</source>
-    <news>v0.2.5 (2023-03-08)
-- Using new MusicInfoTag and VideoInfoTag classes for Kodi 20 instead of the deprecated setInfo method.
-- New context menu items for user playlists to "cleanup":
-  - Move MQA, Atmos or RA360 items to another user playlist
-  - Move duplicate entries to another user playlist and keep the "best" item.
-	The "best" item is MQA. If the same track is available as "explicit" and "non explicit"
-	the "non explicit" item will be moved.
-  - "Move from here ..." to move multiple playlist items to another playlist
-    (This function uses the TIDAL playlist oder, not the order of the sorted list inside Kodi)
-- Experimental function to build a "virtual library" for artists and albums
-  - The virtual library directories can be set in the addon settings
-  - Artist and albun infos are saved as 'nfo' files
-  - Album tracks are saved as "STRM" files including the TIDAL2 playback URL.
-    This STRM files can be played from the Kodi file browser.
+    <news>v0.2.6 (2024-10-03)
+- Removed MQA and Sony 360 from the UI
+- New context menu item "Move items ..." to select multiple playlist items using a search string
+  to move them to a different playlist.
     </news>
     <assets>
       <icon>resources/icon.png</icon>

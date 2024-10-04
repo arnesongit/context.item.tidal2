@@ -110,6 +110,7 @@ class Msg(object):
     i30452 = 30452 # Export to virtual Library
     i30453 = 30453 # Move from here ...
     i30454 = 30454 # How many items ?
+    i30455 = 30455 # Move items ...
 
 
 def _S(txtid):

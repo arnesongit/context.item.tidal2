@@ -26,14 +26,14 @@ from requests import HTTPError
 from tidal2.common import __addon_id__ as _tidal2_addon_id_
 from tidal2.textids import _T, _P
 from tidal2.config import settings as tidalSettings
-from tidal2.items import PlaylistItem, TrackItem
+from tidal2.items import PlaylistItem, TrackItem, VideoItem
 from tidal2.tidalapi import Playlist
 
 from .common import Const, plugin
 from .textids import Msg, _S
 from .config import settings, log
 from .fuzzysession import FuzzySession, NewMusicSearcher
-from .fuzzymodels import FuzzyTrackItem
+from .fuzzymodels import FuzzyTrackItem, FuzzyVideoItem
 from . import item_info
 
 try:
@@ -592,22 +592,41 @@ def user_playlist_move(what, playlist_id):
         return
     try:
         mqa_tracks = []
+        hires_tracks = []
         atmos_tracks = []
         ra360_tracks = []
         dup_tracks = []
+        pattern_tracks = []
         good_tracks = {}
         playlist = session.get_playlist(playlist_id)
         isAlbumPlaylist = True if 'ALBUM' in playlist.description else False
-        items = session.get_playlist_items(playlist)
-        items = [FuzzyTrackItem(i) for i in items if isinstance(i, TrackItem) and i.available]
+        search_pattern = None
+        if what == 'pattern':
+            search_pattern = xbmcgui.Dialog().input('Suchmuster')
+            if not search_pattern:
+                return
+        items = []
+        for item in session.get_playlist_items(playlist):
+            if item.available and isinstance(item, TrackItem):
+                items.append( FuzzyTrackItem(item) )
+            elif item.available and isinstance(item, VideoItem):
+                item.isHiRes = False
+                item.isMqa = False
+                item.isDolbyAtmos = False
+                item.isSony360RA = False
+                items.append( FuzzyVideoItem(item) )
         for item in items:
             if item.isMqa:
                 mqa_tracks.append(item)
+            if item.isHiRes:
+                hires_tracks.append(item)
             if item.isDolbyAtmos:
                 atmos_tracks.append(item)
             if item.isSony360RA:
                 ra360_tracks.append(item)
             label = item.album.getSimpleLabel() if isAlbumPlaylist else item.getSimpleLabel()
+            if search_pattern and search_pattern.lower() in label.lower():
+                pattern_tracks.append(item)
             good = good_tracks.get(label, None)
             if good == None:
                 good_tracks[label] = item
@@ -615,7 +634,9 @@ def user_playlist_move(what, playlist_id):
                 # Item with same name exists. Keep the one, which is 'better'
                 if  ( item.isMqa == good.isMqa and item.explicit and not good.explicit ) or \
                     ( item.explicit == good.explicit and item.isMqa and not good.isMqa ) or \
-                    ( isAlbumPlaylist and item.explicit == good.explicit and item.isMqa == good.isMqa and session.get_album(item.album.id).numberOfItems > session.get_album(good.album.id).numberOfItems ):
+                    ( item.isHiRes == good.isHiRes and item.explicit and not good.explicit ) or \
+                    ( item.explicit == good.explicit and item.isHiRes and not good.isHiRes ) or \
+                    ( isAlbumPlaylist and item.explicit == good.explicit and ( item.isMqa == good.isMqa or item.isHiRes == good.isHiRes ) and session.get_album(item.album.id).numberOfItems > session.get_album(good.album.id).numberOfItems ):
                     # The item is better
                     dup_tracks.append(good)
                     good_tracks[label] = item
@@ -624,10 +645,14 @@ def user_playlist_move(what, playlist_id):
                     dup_tracks.append(item)
         if what == 'mqa':
             items = mqa_tracks
+        elif what == 'hires':
+            items = hires_tracks
         elif what == 'atmos':
             items = atmos_tracks
         elif what == '360':
             items = ra360_tracks
+        elif what == 'pattern':
+            items = pattern_tracks
         else:
             items = dup_tracks
         text = ['%s: %s' % (i._playlist_pos, i.getLabel()) for i in items]
@@ -736,10 +761,11 @@ def context_menu():
     if item.get('FolderPath').find('%s/user_folders' % _tidal2_addon_id_) >= 0 and item.get('FileNameAndPath').find('playlist/') > 0:
         uuid = item.get('FileNameAndPath').split('playlist/')[1].split('/')[0]
         commands.append( (_S(Msg.i30435), 'RunPlugin(plugin://%s/user_playlist_export/%s)' % (Const.addon_id, uuid)) )
-        commands.append( (_S(Msg.i30449), 'RunPlugin(plugin://%s/user_playlist_move/mqa/%s)' % (Const.addon_id, uuid)) )
+        # commands.append( (_S(Msg.i30449), 'RunPlugin(plugin://%s/user_playlist_move/mqa/%s)' % (Const.addon_id, uuid)) )
         commands.append( (_S(Msg.i30447), 'RunPlugin(plugin://%s/user_playlist_move/atmos/%s)' % (Const.addon_id, uuid)) )
-        commands.append( (_S(Msg.i30448), 'RunPlugin(plugin://%s/user_playlist_move/360/%s)' % (Const.addon_id, uuid)) )
+        # commands.append( (_S(Msg.i30448), 'RunPlugin(plugin://%s/user_playlist_move/360/%s)' % (Const.addon_id, uuid)) )
         commands.append( (_S(Msg.i30450), 'RunPlugin(plugin://%s/user_playlist_move/duplicates/%s)' % (Const.addon_id, uuid)) )
+        commands.append( (_S(Msg.i30455), 'RunPlugin(plugin://%s/user_playlist_move/pattern/%s)' % (Const.addon_id, uuid)) )
     if item.get('FolderPath').find('%s/playlist' % _tidal2_addon_id_) >= 0 and item.get('FolderPath').find('/items') > 0:
         uuid = item.get('FolderPath').split('playlist/')[1].split('/')[0]
         session.user.load_cache()

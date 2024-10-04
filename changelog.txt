@@ -1,3 +1,8 @@
+v0.2.6 (2024-10-03)
+- Removed MQA and Sony 360 from the UI
+- New context menu item "Move items ..." to select multiple playlist items using a search string
+  to move them to a different playlist.
+
 v0.2.5 (2023-03-08)
 - Using new MusicInfoTag and VideoInfoTag classes for Kodi 20 instead of the deprecated setInfo method.
 - New context menu items for user playlists to "cleanup":
