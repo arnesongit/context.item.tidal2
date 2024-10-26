@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+    <!-- Ustawienia Główne -->
+    <string id="30001">Szukaj w TIDAL2</string>
+    <string id="30003">Katalog Eksportu/Importu</string>
+    <string id="30004">Maks. ilość jednoczesnych zapytań wyszukiwania</string>
+    <string id="30005">Włącz wirtualną Bibliotekę</string>
+    <string id="30006">Folder Artysty</string>
+    <string id="30007">Folder Albumu</string>
+    <string id="30011">Główne</string>
+    <string id="30070">Włącz Logowanie Debugowania</string>
+
+    <!-- Ustawienia Wyszukiwania -->
+    <string id="30080">Czarne Listy</string>
+    <string id="30081">Luźne Wyszukiwanie</string>
+    <string id="30082">Czarna Lista #1</string>
+    <string id="30083">Czarna Lista #2</string>
+    <string id="30084">Czarna Lista #3</string>
+    <string id="30085">Redukuj Poziom Dopasowania dla Czarnej Listy</string>
+    <string id="30086">Minimalny Poziom Dopasowania Artysty/Albumu Artysty</string>
+    <string id="30087">Parametry dla Luźnego Wyszukiwania:</string>
+    <string id="30088">Zwiększ Poziom Dopasowania dla Ulubionych Artystów</string>
+    <string id="30089">Dopasuj tylko w nawiasach ( ) albo [ ]</string>
+
+    <string id="30101">Artysta</string>
+    <string id="30102">Album</string>
+    <string id="30103">Playlista</string>
+    <string id="30104">Utwór</string>
+    <string id="30105">Wideo</string>
+    <string id="30106">Artyści</string>
+    <string id="30107">Albumy</string>
+    <string id="30108">Playlisty</string>
+    <string id="30109">Utwory</string>
+    <string id="30110">Wideo</string>
+
+    <!-- Tekst Programu -->
+    <string id="30400">Szukaj Ponownie</string>
+    <string id="30401">Szukaj</string>
+    <string id="30402">Wykonawca Albumu</string>
+    <string id="30403">Rok Albumu</string>
+    <string id="30404">Zaloguj się!</string>
+    <string id="30405">Rozpocznij</string>
+    <string id="30406">Od Pozycji</string>
+    <string id="30407">Do Pozycji</string>
+    <string id="30408">Utwórz Playlistę</string>
+    <string id="30409">Playlista dla {what}</string>
+    <string id="30410">Szukanie w TIDAL ...</string>
+    <string id="30411">Szukanie ...</string>
+    <string id="30412">Nie Znaleziono</string>
+    <string id="30413">Znaleziono {n} z {m} elementów</string>
+    <string id="30414">Szukanie anulowane</string>
+    <string id="30415">Szukanie przerwane przez użytkownika.</string>
+    <string id="30416">Dodać znalezione Elementy do Playlisty ?</string>
+    <string id="30417">Ukończono</string>
+    <string id="30418">Dodawanie Utworów do Playlisty ...</string>
+    <string id="30419">Szukaj w TIDAL</string>
+    <string id="30420">Luźne Wyszukiwanie</string>
+    <string id="30421">Utwórz Playlistę Utworu</string>
+    <string id="30422">Utwórz Playlistę Wideo</string>
+    <string id="30423">Ustawienia Dodatku</string>
+    <string id="30424">Informacje o elementach listy</string>
+    <string id="30425">Problem z Autoryzacją</string>
+    <string id="30426">Eksportuj Ulubieni {what} ...</string>
+    <string id="30427">Importuj Ulubieni {what} ...</string>
+    <string id="30428">Wyeksportowano {n} elementów</string>
+    <string id="30429">Zaimportowano {n} elementów</string>
+    <string id="30430">Usuń Ulubieni {what}</string>
+    <string id="30431">Usunąć wszystkie {what} z Ulubionych?</string>
+    <string id="30432">Importuj {what}</string>
+    <string id="30433">Eksportuj Playlisty Użytkownika</string>
+    <string id="30434">Importuj Playlisty Użytkownika</string>
+    <string id="30435">Eksportuj Playlistę Użytkownika</string>
+    <string id="30436">Usuń wszystkie Ulubieni {what}</string>
+    <string id="30437">Szukaj nowej Muzyki</string>
+    <string id="30438">Limit Wyników Wyszukiwania</string>
+    <string id="30439">Maks. wiek w dniach</string>
+    <string id="30440">Znaleziono nową Muzykę:</string>
+    <string id="30441">Dodawanie znalezionych elementów do Playlist ...</string>
+    <string id="30442">Błąd podczas wyszukiwania nowej Muzyki</string>
+    <string id="30443">Nie znaleziono nwej Muzyki!</string>
+    <string id="30444">Wyszukiwanie Przerwane.</string>
+    <string id="30445">Zadania wyszukiwania w toku.</string>
+    <string id="30446">Przerwać wszystkie zadania wyszukiwania ?</string>
+    <string id="30447">Przenieś utwory Atmos...</string>
+    <string id="30448">Przenieś utwory RA360 ...</string>
+    <string id="30449">Przenieś utwory MQA ...</string>
+    <string id="30450">Przenieś zduplikowane Utwory ...</string>
+    <string id="30451">Przenieś Utwór do innej playlisty</string>
+    <string id="30452">Eksportuj do wirtualnej Biblioteki</string>
+    <string id="30453">Przenieś stąd ...</string>
+    <string id="30454">Ile elementów ?</string>
+    <string id="30455">Przenieś elementy ...</string>
+
+</strings>
